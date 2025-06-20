@@ -1,9 +1,9 @@
 from langgraph.graph import StateGraph, END, START
-from utils.llm import AgentState
-from tools.classify import classify_query
-from tools.retrieve_update import retrieve_updates
-from tools.assign_task import assign_task
-from tools.add_comment import add_comment
+from app.agents.state import AgentState
+from app.agents.tools.classify import classify_query
+from app.agents.tools.retrieve_update import retrieve_updates
+from app.agents.tools.assign_task import assign_task
+from app.agents.tools.add_comment import add_comment
 
 # Define the graph
 graph = StateGraph(AgentState)  # Use StateGraph, not just Graph()
@@ -41,4 +41,4 @@ graph.add_edge("add_comment", END)
 graph.add_edge(START, "classify_query")
 
 # Compile it
-agent4 = graph.compile()
+chatbot_agent = graph.compile()
