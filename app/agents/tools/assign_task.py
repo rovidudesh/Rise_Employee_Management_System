@@ -1,10 +1,9 @@
 from app.utils.llm import llm_call
 from app.agents.state import AgentState
-from app.database import SessionLocal , Session , User 
-from app.models import DailyUpdate , Task
+from app.database import SessionLocal 
+from app.models import DailyUpdate , Task , User
 from datetime import date 
 
-session = SessionLocal()
 
 def assign_task(state: AgentState):
     print('Assigning task...')
@@ -41,7 +40,7 @@ Message: "{user_input}"
         assigned_by_name = "Alice Johnson"
 
     # Start DB session
-    session = Session()
+    session = SessionLocal()
 
     assigner = session.query(User).filter_by(full_name=assigned_by_name).first()
     assignee = session.query(User).filter_by(full_name=assigned_to_name).first()

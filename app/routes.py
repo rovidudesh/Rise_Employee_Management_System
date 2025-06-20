@@ -3,7 +3,6 @@ from langchain_core.messages import HumanMessage
 from app.agents.graph import chatbot_agent  # This is your compiled LangGraph agent
 from app.agents.state import AgentState     # Your shared agent state structure
 from flask import render_template
-from app.utils import llm_call  # Assuming you have a utility function for LLM calls
 
 main = Blueprint("main", __name__)
 
@@ -40,3 +39,4 @@ def chat():
     except Exception as e:
         print(f"[ERROR] {e}")
         return f"❌ Error: {str(e)}"
+    
