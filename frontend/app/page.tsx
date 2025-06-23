@@ -1,13 +1,27 @@
+'use client';
 import Footer from "./components/Footer";
 import LoginCard from "./components/LoginCard";
 import Image from 'next/image';
+import React, { useEffect, useState } from 'react';
 
 
 export default function Home() {
+
+  const [message, setMessage] = useState("Loading")
+
+  useEffect(() => {
+    fetch('http://localhost:8081/api/home')
+    .then((response) => response.json())
+    .then((data) => {
+      setMessage(data.message);
+    })
+  }, []);
+  
   return (
     <div className="min-h-screen flex flex-col">
       {/* Main content */}
       <div className="flex-grow pb-10 md:pb-0">
+        {message}
         <div className="text-black font-bold font-mono
                       text-2xl mt-12 ml-4
                       md:text-3xl md:mt-12 md:ml-8
