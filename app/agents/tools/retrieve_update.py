@@ -1,9 +1,8 @@
-from utils.llm import AgentState, llm_call
-from app.database import SessionLocal , Session , User 
-from app.models import DailyUpdate
+from app.utils.llm import llm_call
+from app.agents.state import AgentState
+from app.database import SessionLocal 
+from app.models import DailyUpdate , User
 from datetime import datetime
-
-session = SessionLocal()
 
 
 def retrieve_updates(state: AgentState):
@@ -21,8 +20,10 @@ def retrieve_updates(state: AgentState):
     result = llm_call(extraction_prompt).splitlines()
     emp_name, req_date = result[0].strip(), result[1].strip()
 
+    # Start DB session
+    session = SessionLocal()
     # Step 2: Query user and updates
-    with Session() as session:
+    with SessionLocal() as session:
         user = session.query(User).filter(User.full_name == emp_name).first()
 
         if not user:

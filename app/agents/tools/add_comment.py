@@ -1,9 +1,9 @@
-from utils.llm import AgentState, llm_call
-from app.database import SessionLocal , Session , User 
-from app.models import DailyUpdate
+from app.utils.llm import llm_call
+from app.agents.state import AgentState
+from app.database import SessionLocal 
+from app.models import DailyUpdate , User 
 from datetime import date 
 
-session = SessionLocal()
 
 def add_comment(state: AgentState):
     print('Adding comment...')
@@ -30,7 +30,7 @@ def add_comment(state: AgentState):
     name, date_str, comment_text = lines[0], lines[1], lines[2]
     
     # Query and update
-    session = Session()
+    session = SessionLocal()
     user = session.query(User).filter_by(full_name=name).first()
     if not user:
         return {"retrieved_data": f"❌ No employee found with name: {name}"}
