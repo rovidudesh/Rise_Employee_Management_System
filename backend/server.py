@@ -1,15 +1,9 @@
-from flask import Flask, jsonify
-from flask_cors import CORS
+from app import create_app
 
-# app instance
-app = Flask(__name__)
-CORS(app)
+app = create_app()
 
-@app.route('/api/home', methods=['GET'])
-def return_home():
-    return jsonify({
-        'message': 'Hello world from Flask!',
-    })
-
-if __name__ == '__main__':
-    app.run(debug=True, port=8081)
+if __name__ == "__main__":
+    with app.app_context():
+        print("Flask API server starting...")
+        print("Manager creation endpoint: POST http://localhost:5000/api/auth/create_manager")
+    app.run(debug=True, port=5000)
