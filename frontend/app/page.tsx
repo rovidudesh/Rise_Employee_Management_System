@@ -9,13 +9,15 @@ export default function Home() {
 
   const [message, setMessage] = useState("Loading")
 
-  useEffect(() => {
+  /*useEffect(() => {
     fetch('http://localhost:8081/api/home')
     .then((response) => response.json())
     .then((data) => {
       setMessage(data.message);
     })
   }, []);
+  
+  */
   
   return (
     <div className="min-h-screen flex flex-col">
