@@ -18,7 +18,7 @@ Base = declarative_base()
 def init_db():
     """Initialize database tables."""
     # Import all models to ensure they are registered with Base
-    from .models import User, employee, manager 
+    from .models import User,Task, employee, manager 
 
     # Create all tables
     Base.metadata.create_all(bind=engine)
@@ -31,3 +31,4 @@ def get_db_session():
         yield session
     finally:
         session.close()
+

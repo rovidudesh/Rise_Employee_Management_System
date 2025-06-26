@@ -21,7 +21,11 @@ def create_app():
     # Import and register blueprints
     try:
         from .auth.routes import auth_bp
+        from .employees.routes import employees_bp
+
         app.register_blueprint(auth_bp)
+        app.register_blueprint(employees_bp)
+        
         print("Auth routes registered successfully.")
     except ImportError as e:
         print(f"Blueprint registration error: {e}")
