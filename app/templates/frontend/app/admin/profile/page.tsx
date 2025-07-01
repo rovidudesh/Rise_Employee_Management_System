@@ -10,12 +10,12 @@ const Page = () => {
     <div className='flex flex-col min-h-screen bg-gray-100'>
       <Header />
 
-      <main className="flex-grow flex gap-6 px-6 py-4">
+      <main className="flex-grow flex gap-8 px-8 py-6">
         {/* Sidebar rendered directly, no fixed width wrapper */}
         <SideNavigation />
 
         {/* Dashboard content flex-grow fills the rest */}
-        <div className="flex-grow">
+        <div className="flex-grow min-w-0">
           <ProfileDashboard />
         </div>
       </main>

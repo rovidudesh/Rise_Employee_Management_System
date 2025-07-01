@@ -7,38 +7,28 @@ import React, { useEffect, useState } from 'react';
 
 export default function Home() {
 
-  const [message, setMessage] = useState("Loading")
 
-  /*useEffect(() => {
-    fetch('http://localhost:8081/api/home')
-    .then((response) => response.json())
-    .then((data) => {
-      setMessage(data.message);
-    })
-  }, []);
-  
-  */
   
   return (
     <div className="min-h-screen flex flex-col">
       {/* Main content */}
       <div className="flex-grow pb-10 md:pb-0">
-        {message}
         <div className="text-black font-bold font-mono
-                      text-2xl mt-12 ml-4
-                      md:text-3xl md:mt-12 md:ml-8
-                      lg:text-4xl">
+                      text-3xl mt-12 ml-4
+                      md:text-4xl md:mt-12 md:ml-16
+                      lg:text-6xl">
           Rise Tech Village
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2'>
-          <div className="ml-4 md:ml-8">
+          <div className="ml-4 md:ml-16">
             <div className='text-black font-bold font-mono
-                        text-xl mt-[30px] 
-                        md:text-2xl md:mt-[30px] '>
+                        text-2xl mt-[20px] 
+                        md:text-3xl md:mt-[30px] 
+                        lg:text-4xl lg:mt-[60px]'>
               Welcome Back 👋
             </div>
-            <div>
+            <div className="mt-89">
               <LoginCard />
             </div>
           </div>
@@ -49,7 +39,7 @@ export default function Home() {
               alt='Welcome Image'
               width={350}
               height={350}
-              className="w-[250px] md:w-[400px]"
+              className="w-[350px] md:w-[500px] lg:w-[600px]"
             />
           </div>
         </div>

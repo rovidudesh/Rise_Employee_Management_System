@@ -1,9 +1,9 @@
 'use client'
 import React from 'react'
 import Header from '../components/admin/Header'
+import Chatbot from '../components/manager/Chatbot'
 import Footer from '../components/Footer'
-import SideNavigation from '../components/admin/SideNav'
-import RegisterUserForm from '../components/admin/RegisterForm'
+import SideNavigation from '../components/manager/SideNav'
 
 const Page = () => {
   return (
@@ -17,7 +17,7 @@ const Page = () => {
 
         {/* Chatbot */}
         <div className="flex-1 flex justify-center">
-          <RegisterUserForm />
+          <Chatbot />
         </div>
       </main>
 
