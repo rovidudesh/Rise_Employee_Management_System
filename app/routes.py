@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, session, flash, url_for
+from flask import Blueprint, render_template, request, redirect, session, flash, url_for,jsonify
 from langchain_core.messages import HumanMessage
 from app.agents.graph import chatbot_agent  # This is your compiled LangGraph agent
 from app.agents.state import AgentState     # Your shared agent state structure
@@ -16,39 +16,49 @@ main = Blueprint("main", __name__)
 def index():
     return render_template("login.html")
 
-@main.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = request.form.get("email")
-        pword = request.form.get("password")
+@main.route("/api/login", methods=["POST"])
+def api_login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
 
-        db = SessionLocal()
+    print(f"API login attempt with email: {email}")
+
+    db = SessionLocal()
+    try:
         user = db.query(User).filter_by(email=email).first()
 
-        if user and user.pword == pword:
-            # If using hashing in future: check_password_hash(user.pword, pword)
-            session["user_id"] = user.id
-            session["role"] = user.role
-            session["full_name"] = user.full_name
-            session["status"] = user.status  # Optional: track user status
-            session["team"] = user.team  
-            flash(f" Welcome back, {user.full_name}!")
+        if user and user.pword == password:
+            print(f"Api login successful for user: {user.full_name}")
 
-
-            
-            if user.role == "admin":
-                return redirect("/admin")
-            elif user.role == "manager":
-                return redirect("/manager")
-            elif user.role == "employee":
-                return redirect("/employee")
+            # Return user details
+            return jsonify({
+                "success": True,
+                "user": {
+                    "id": user.id,
+                    "full_name": user.full_name,
+                    "role": user.role,
+                    "status": user.status,
+                    "team": user.team
+                },
+                "message": f"Welcome back, {user.full_name}!"
+            })
         else:
-            flash("❌ Invalid email or password.")
-            print(f"Email: {email}, Password: {pword}")
-            print(f"DB returned: {user.email if user else 'No user'}, Password in DB: {user.pword if user else 'N/A'}")
-            return redirect("/login")
+            print(f"API Login failed for email: {email}")
+            return jsonify({
+                "success": False,
+                "message": "Invalid email or password"
+            }),401
+        
+    except Exception as e:
+        print(f"API Login error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "message": "An error occurred during login."
+        }), 500
 
-    return render_template("login.html")
+    finally:
+        db.close()
 
 #Logout
 @main.route("/logout")
@@ -195,3 +205,6 @@ def chat():
         print(f"[ERROR] {e}")
         return f" Error: {str(e)}"
     
+
+
+

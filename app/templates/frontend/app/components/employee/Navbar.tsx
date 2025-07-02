@@ -8,7 +8,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  const isActive = (href) => pathname === href;
+  // Fix TypeScript error by adding proper type annotation
+  const isActive = (href: string): boolean => pathname === href;
 
   return (
     <nav className="bg-white shadow-md">
