@@ -1,7 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '../../lib/api';
+import { isAuthenticated, getUserRole } from '../../lib/auth';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,21 @@ const LoginForm = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // check if user is already logged in
+  useEffect(() => {
+    if (isAuthenticated()) {
+      // Redirect based on user role
+      const role = getUserRole();
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'manager'){
+        router.push('/manager');
+      } else if (role === 'employee') {
+        router.push('/employee');
+      }
+    }
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,8 +35,8 @@ const LoginForm = () => {
       const response = await login(email, password);
       
       if (response.success) {
-        // Store user data in localStorage for persistent session
-        localStorage.setItem('user', JSON.stringify(response.user));
+        // Token and user data are already stored in localStorage by the login function
+
         
         // Redirect based on user role
         if (response.user.role === 'admin') {

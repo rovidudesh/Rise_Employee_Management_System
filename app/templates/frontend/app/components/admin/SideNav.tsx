@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { FaUser, FaUserPlus, FaUsers, FaBars, FaTimes } from 'react-icons/fa';
+import { usePathname, useRouter } from 'next/navigation';
+import { FaUser, FaUserPlus, FaUsers, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
+import { logout } from '../../../lib/api';
 
 const SideNavigation = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
@@ -19,6 +21,11 @@ const SideNavigation = () => {
       ],
     },
   ];
+
+  const handleLogout = () => {
+    logout(); // Clear authentication data
+    router.push('/'); // Redirect to login page
+  };
 
   const toggleSidebar = () => setIsOpen((prev) => !prev);
 
@@ -47,40 +54,54 @@ const SideNavigation = () => {
         className={`
           fixed top-0 left-0 h-full bg-white p-6 shadow-md w-72
           transform transition-transform duration-300 ease-in-out
-          z-50
+          z-50 flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:static lg:translate-x-0 lg:shadow-none
           rounded-r-lg
         `}
       >
-        {links.map((section, idx) => (
-          <div key={idx} className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">{section.section}</h3>
-            <nav>
-              <ul>
-                {section.items.map((item, i) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <li key={i} className="mb-4 last:mb-0">
-                      <Link
-                        href={item.href}
-                        className={`flex items-center px-4 py-3 rounded transition-colors duration-200 ${
-                          isActive
-                            ? 'text-indigo-600 font-semibold border-l-4 border-indigo-600 bg-indigo-50'
-                            : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
-                        }`}
-                        onClick={() => setIsOpen(false)} // close sidebar on mobile when link clicked
-                      >
-                        {item.icon}
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-          </div>
-        ))}
+        {/* Main navigation links */}
+        <div className="flex-grow">
+          {links.map((section, idx) => (
+            <div key={idx} className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-6">{section.section}</h3>
+              <nav>
+                <ul>
+                  {section.items.map((item, i) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <li key={i} className="mb-4 last:mb-0">
+                        <Link
+                          href={item.href}
+                          className={`flex items-center px-4 py-3 rounded transition-colors duration-200 ${
+                            isActive
+                              ? 'text-indigo-600 font-semibold border-l-4 border-indigo-600 bg-indigo-50'
+                              : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                          }`}
+                          onClick={() => setIsOpen(false)} // close sidebar on mobile when link clicked
+                        >
+                          {item.icon}
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            </div>
+          ))}
+        </div>
+        
+        {/* Logout button at bottom */}
+        <div className="mt-auto pt-6 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+          >
+            <FaSignOutAlt className="mr-3 text-xl" />
+            Logout
+          </button>
+        </div>
       </aside>
     </>
   );

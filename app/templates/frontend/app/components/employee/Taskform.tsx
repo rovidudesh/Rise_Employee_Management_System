@@ -3,25 +3,11 @@ import React, { useState } from 'react';
 const TaskForm = () => {
   const [taskTitle, setTaskTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [department, setDepartment] = useState('');
   const [date, setDate] = useState('');
   const [priority, setPriority] = useState('');
   const [timeSpent, setTimeSpent] = useState('');
-  const [files, setFiles] = useState([]);
+  const [referenceLink, setReferenceLink] = useState('');
   const [comments, setComments] = useState('');
-
-  const handleFileChange = (e) => {
-    setFiles([...e.target.files]);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setFiles([...e.dataTransfer.files]);
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -29,11 +15,10 @@ const TaskForm = () => {
     console.log({
       taskTitle,
       description,
-      department,
       date,
       priority,
       timeSpent,
-      files,
+      referenceLink,
       comments,
     });
     // You can send this data to an API or perform other actions
@@ -42,11 +27,10 @@ const TaskForm = () => {
     // Reset form after successful submission
     setTaskTitle('');
     setDescription('');
-    setDepartment('');
     setDate('');
     setPriority('');
     setTimeSpent('');
-    setFiles([]);
+    setReferenceLink('');
     setComments('');
   };
 
@@ -95,19 +79,18 @@ const TaskForm = () => {
               />
             </div>
 
-            {/* Department */}
+            {/* Reference Link */}
             <div>
-              <label htmlFor="department" className="block text-base font-medium text-gray-700 mb-3">
-                Department
+              <label htmlFor="referenceLink" className="block text-base font-medium text-gray-700 mb-3">
+                Reference Link
               </label>
               <input
-                type="text"
-                id="department"
+                type="url"
+                id="referenceLink"
                 className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-base"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                required
-                placeholder="Enter department"
+                value={referenceLink}
+                onChange={(e) => setReferenceLink(e.target.value)}
+                placeholder="https://example.com"
               />
             </div>
           </div>
@@ -115,7 +98,7 @@ const TaskForm = () => {
           {/* Description - Full width */}
           <div>
             <label htmlFor="description" className="block text-base font-medium text-gray-700 mb-3">
-              Description
+              Description - Work Done
             </label>
             <textarea
               id="description"
@@ -145,25 +128,6 @@ const TaskForm = () => {
               />
             </div>
 
-            {/* Priority */}
-            <div>
-              <label htmlFor="priority" className="block text-base font-medium text-gray-700 mb-3">
-                Priority
-              </label>
-              <select
-                id="priority"
-                className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-base"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                required
-              >
-                <option value="">Select Priority</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
-
             {/* Time Spent */}
             <div>
               <label htmlFor="timeSpent" className="block text-base font-medium text-gray-700 mb-3">
@@ -177,62 +141,6 @@ const TaskForm = () => {
                 onChange={(e) => setTimeSpent(e.target.value)}
                 placeholder="e.g., 2 hours"
               />
-            </div>
-          </div>
-
-          {/* Files and Attachments */}
-          <div>
-            <label className="block text-base font-medium text-gray-700 mb-3">
-              Files and Attachments
-            </label>
-            <p className="text-sm text-gray-500 mb-4">Maximum 10MB file size per upload</p>
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-500 transition duration-200"
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            >
-              <div className="flex flex-col items-center justify-center space-y-4">
-                {/* SVG for upload icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-16 w-16 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-                <p className="text-gray-600 text-base">Choose a file or drag & drop it here</p>
-                <p className="text-gray-500 text-sm">JPEG, PNG, PDF, or DOCX up to 10MB</p>
-                <input
-                  type="file"
-                  multiple
-                  className="hidden"
-                  id="fileUpload"
-                  onChange={handleFileChange}
-                />
-                <label
-                  htmlFor="fileUpload"
-                  className="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition duration-200 text-base font-medium"
-                >
-                  Browse Files
-                </label>
-              </div>
-              {files.length > 0 && (
-                <div className="mt-6 text-left">
-                  <p className="text-base font-medium text-gray-700 mb-2">Selected Files:</p>
-                  <ul className="list-disc list-inside text-gray-600 text-base space-y-1">
-                    {files.map((file, index) => (
-                      <li key={index}>{file.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </div>
 
