@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage
 from app.agents.graph import chatbot_agent  # This is your compiled LangGraph agent
 from app.agents.state import AgentState     # Your shared agent state structure
 from flask import render_template
-from app.models import User , DailyUpdate
+from app.models import User, DailyUpdate, Task  # Add Task to imports
 from app.database import SessionLocal
 from datetime import date
 from werkzeug.security import check_password_hash  # Optional for future hashed passwords
@@ -229,6 +229,8 @@ def update_user_status(user_id):
         flash(f" Status for {user.full_name} updated to {new_status}")
     return redirect("/admin")
 
+# -----------------------------------------------------------------------------
+
 #Employee Page
 @main.route("/employee", methods=["GET", "POST"])
 def employee_dashboard():
@@ -314,7 +316,7 @@ def chat():
         return f" Error: {str(e)}"
 
 
-# Update user status API endpoint
+# Update user status API endpoint - Admin only
 @main.route("/api/admin/update-status/<int:user_id>", methods=["PUT", "OPTIONS"])
 @cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
 def update_user_status_api(user_id):
@@ -356,6 +358,187 @@ def update_user_status_api(user_id):
                 "team": user.team,
                 "status": user.status
             }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+# Submit Daily Update API endpoint - Employee only
+@main.route("/api/employee/submit-daily-update", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def submit_daily_update():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is employee
+    if session.get("role") != "employee":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        data = request.get_json()
+        title = data.get("title")
+        date_str = data.get("date")  # Expected format: YYYY-MM-DD
+        work_done = data.get("work_done")
+        reference_link = data.get("reference_link")
+        comment = data.get("comment")
+        task_id = data.get("task_id")  # Optional - if related to a specific task
+        
+        # Validate required fields
+        if not all([title, date_str, work_done]):
+            return jsonify({"error": "Title, date, and work_done are required"}), 400
+        
+        # Parse date
+        try:
+            from datetime import datetime
+            parsed_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+        
+        # Get user ID from session
+        user_id = session.get("user_id")
+        
+        db = SessionLocal()
+        
+        # Check if user exists and is active
+        user = db.query(User).get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        if user.status != "active":
+            return jsonify({"error": "User account is not active"}), 403
+        
+        # Check if task_id is provided and valid
+        if task_id:
+            task = db.query(Task).get(task_id)
+            if not task:
+                return jsonify({"error": "Task not found"}), 404
+            
+            # Check if task is assigned to this user
+            if task.assigned_to_id != user_id:
+                return jsonify({"error": "Task not assigned to this user"}), 403
+        
+        # Check if daily update already exists for this user and date
+        existing_update = db.query(DailyUpdate).filter(
+            DailyUpdate.user_id == user_id,
+            DailyUpdate.date == parsed_date
+        ).first()
+        
+        if existing_update:
+            return jsonify({"error": "Daily update already submitted for this date"}), 409
+        
+        # Create new daily update
+        daily_update = DailyUpdate(
+            user_id=user_id,
+            date=parsed_date,
+            title=title,
+            work_done=work_done,
+            reference_link=reference_link if reference_link else None,
+            comment=comment if comment else None,
+            task_id=int(task_id) if task_id else None
+        )
+        
+        db.add(daily_update)
+        db.commit()
+        
+        return jsonify({
+            "message": "Daily update submitted successfully",
+            "daily_update": {
+                "id": daily_update.id,
+                "title": daily_update.title,
+                "date": daily_update.date.strftime("%Y-%m-%d"),
+                "work_done": daily_update.work_done,
+                "reference_link": daily_update.reference_link,
+                "comment": daily_update.comment,
+                "task_id": daily_update.task_id
+            }
+        }), 201
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+# Get Employee Daily Updates API endpoint
+@main.route("/api/employee/daily-updates", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def get_employee_daily_updates():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is employee
+    if session.get("role") != "employee":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        user_id = session.get("user_id")
+        db = SessionLocal()
+        
+        # Get all daily updates for this user
+        updates = db.query(DailyUpdate).filter(
+            DailyUpdate.user_id == user_id
+        ).order_by(DailyUpdate.date.desc()).all()
+        
+        updates_list = []
+        for update in updates:
+            updates_list.append({
+                "id": update.id,
+                "title": update.title,
+                "date": update.date.strftime("%Y-%m-%d"),
+                "work_done": update.work_done,
+                "reference_link": update.reference_link,
+                "comment": update.comment,
+                "task_id": update.task_id
+            })
+        
+        return jsonify({
+            "daily_updates": updates_list
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+# Get Employee Tasks API endpoint
+@main.route("/api/employee/tasks", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def get_employee_tasks():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is employee
+    if session.get("role") != "employee":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        user_id = session.get("user_id")
+        db = SessionLocal()
+        
+        # Get all tasks assigned to this user
+        tasks = db.query(Task).filter(
+            Task.assigned_to_id == user_id
+        ).order_by(Task.due_date.asc()).all()
+        
+        tasks_list = []
+        for task in tasks:
+            # Get assigner name
+            assigner = db.query(User).get(task.assigned_by_id)
+            assigner_name = assigner.full_name if assigner else "Unknown"
+            
+            tasks_list.append({
+                "id": task.id,
+                "title": task.title,
+                "description": task.description,
+                "assigned_date": task.assigned_date.strftime("%Y-%m-%d") if task.assigned_date else None,
+                "due_date": task.due_date.strftime("%Y-%m-%d") if task.due_date else None,
+                "status": task.status,
+                "assigned_by": assigner_name
+            })
+        
+        return jsonify({
+            "tasks": tasks_list
         }), 200
         
     except Exception as e:
