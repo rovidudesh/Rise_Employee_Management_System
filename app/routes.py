@@ -8,6 +8,9 @@ from app.models import User, DailyUpdate, Task  # Add Task to imports
 from app.database import SessionLocal
 from datetime import date
 from werkzeug.security import check_password_hash  # Optional for future hashed passwords
+import os 
+
+print("GEMINI_API_KEY:", os.getenv("GEMINI_API_KEY"))  # Debugging line to check if the key is set
 
 main = Blueprint("main", __name__)
 
@@ -214,55 +217,7 @@ def get_all_users():
 
 
 
-#Updating User Status
-@main.route("/admin/update_status/<int:user_id>", methods=["POST"])
-def update_user_status(user_id):
-    if session.get("role") != "admin":
-        return "Unauthorized", 403
-
-    new_status = request.form.get("status")
-    db = SessionLocal()
-    user = db.query(User).get(user_id)
-    if user:
-        user.status = new_status
-        db.commit()
-        flash(f" Status for {user.full_name} updated to {new_status}")
-    return redirect("/admin")
-
 # -----------------------------------------------------------------------------
-
-#Employee Page
-@main.route("/employee", methods=["GET", "POST"])
-def employee_dashboard():
-    if session.get("role") != "employee":
-        return "Unauthorized", 403
-
-    db = SessionLocal()
-    user_id = session.get("user_id")  # Assuming login sets this
-
-    if request.method == "POST":
-        title = request.form.get("title")
-        work_done = request.form.get("work_done")
-        reference_link = request.form.get("reference_link")
-        comment = request.form.get("comment")
-        task_id = request.form.get("task_id")
-
-        daily_update = DailyUpdate(
-            user_id=user_id,
-            date=date.today(),
-            title=title,
-            work_done=work_done,
-            reference_link=reference_link or None,
-            comment=comment or None,
-            task_id=int(task_id) if task_id else None
-        )
-
-        db.add(daily_update)
-        db.commit()
-        flash(" Daily update submitted!")
-
-    return render_template("employee_dashboard.html")
-
 #Manager Page
 @main.route("/manager")
 def manager_dashboard():
@@ -315,7 +270,7 @@ def chat():
         print(f"[ERROR] {e}")
         return f" Error: {str(e)}"
 
-
+# ----------------------------------------------------------------------------------------
 # Update user status API endpoint - Admin only
 @main.route("/api/admin/update-status/<int:user_id>", methods=["PUT", "OPTIONS"])
 @cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
@@ -546,6 +501,51 @@ def get_employee_tasks():
     finally:
         db.close()
 
+# Manager Chatbot API endpoint
+@main.route("/api/manager/chatbot", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def manager_chatbot_api():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is manager
+    if session.get("role") != "manager":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        data = request.get_json()
+        user_input = data.get("message")
+        
+        if not user_input:
+            return jsonify({"error": "Message is required"}), 400
+        
+        print(f"[MANAGER CHATBOT] User: {session.get('full_name')} - Input: {user_input}")
+
+        # Initial state passed to the LangGraph agent
+        initial_state = {
+            "messages": [HumanMessage(content=user_input)],
+            "query_type": "",        # required by AgentState
+            "retrieved_data": ""     # will be populated
+        }
+
+        # Run LangGraph agent
+        final_state = chatbot_agent.invoke(initial_state)
+
+        # Get the response from the state
+        response = final_state.get("retrieved_data", "⚠️ No data returned.")
+        print(f"[MANAGER CHATBOT] Bot Response: {response}")
+        
+        return jsonify({
+            "success": True,
+            "response": response
+        }), 200
+
+    except Exception as e:
+        print(f"[MANAGER CHATBOT ERROR] {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Chatbot error: {str(e)}"
+        }), 500
 
 
 

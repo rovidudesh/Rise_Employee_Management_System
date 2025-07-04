@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { sendManagerChatMessage } from "../../../lib/api";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -11,37 +12,31 @@ const Chatbot = () => {
   }, [messages]);
 
   const suggestedPrompts = [
-    "how many tasks have submitted?",
-    "What have person1 done today ?",
-    "summarize the tasks submitted yesterday?"
+    "How many tasks have been submitted today?",
+    "What has my team done today?",
+    "Summarize the tasks submitted yesterday",
+    "Show me daily updates for this week",
+    "Who hasn't submitted their daily update today?",
   ];
 
   const generateChatbotResponse = async (prompt) => {
     setIsLoading(true);
-    let chatHistory = [];
-    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-    const payload = { contents: chatHistory };
-    const apiKey = ""; // Canvas will provide at runtime
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json();
+      const response = await sendManagerChatMessage(prompt);
 
-      if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return result.candidates[0].content.parts[0].text;
+      if (response.success) {
+        return response.response;
       } else {
-        console.error("Unexpected API response:", result);
-        return "Sorry, I couldn't get a response.";
+        console.error("Chatbot API Error:", response.message);
+        return (
+          response.message ||
+          "Sorry, I couldn't process your request. Please try again."
+        );
       }
     } catch (error) {
-      console.error("API Error:", error);
-      return "Connection error. Try again later.";
+      console.error("Chatbot Error:", error);
+      return "Connection error. Please try again later.";
     } finally {
       setIsLoading(false);
     }
@@ -49,47 +44,71 @@ const Chatbot = () => {
 
   const handleSendMessage = async (text) => {
     if (!text.trim()) return;
-    setMessages(prev => [...prev, { type: 'user', text }]);
-    setInputMessage('');
 
-    const response = await generateChatbotResponse(text);
-    setMessages(prev => [...prev, { type: 'bot', text: response }]);
+    // Add user message immediately
+    setMessages((prev) => [...prev, { type: "user", text: text.trim() }]);
+    setInputMessage("");
+
+    // Get bot response
+    const response = await generateChatbotResponse(text.trim());
+
+    // Add bot response
+    setMessages((prev) => [...prev, { type: "bot", text: response }]);
   };
 
   const handlePromptClick = (prompt) => handleSendMessage(prompt);
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(inputMessage);
     }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto font-inter">
       <div className="flex justify-center">
         <div className="w-full max-w-2xl bg-white p-8 sm:p-10 md:p-12 rounded-2xl shadow-lg border border-gray-200">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 text-center">
-            Chatbot Assistant
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800">
+              Manager Assistant
+            </h2>
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                className="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+              >
+                Clear Chat
+              </button>
+            )}
+          </div>
 
           <div className="mb-6 text-center">
-            <p className="text-lg sm:text-xl text-gray-600 mb-2">Hi, There!</p>
-            <p className="text-xl sm:text-2xl font-semibold text-gray-800">How can we help?</p>
+            <p className="text-lg sm:text-xl text-gray-600 mb-2">Hi Manager!</p>
+            <p className="text-xl sm:text-2xl font-semibold text-gray-800">
+              How can I help you manage your team today?
+            </p>
           </div>
 
           {/* Suggested Prompts */}
           {messages.length === 0 && (
             <div className="mb-6">
-              <p className="text-base font-medium text-gray-700 mb-4">Try these suggestions:</p>
+              <p className="text-base font-medium text-gray-700 mb-4">
+                Try these suggestions:
+              </p>
               <div className="space-y-3">
                 {suggestedPrompts.map((prompt, index) => (
                   <button
                     key={index}
                     onClick={() => handlePromptClick(prompt)}
-                    className="w-full text-left px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-base text-gray-700"
+                    disabled={isLoading}
+                    className="w-full text-left px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-base text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {prompt}
+                    💬 {prompt}
                   </button>
                 ))}
               </div>
@@ -101,14 +120,28 @@ const Chatbot = () => {
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${
+                  msg.type === "user" ? "justify-end" : "justify-start"
+                }`}
               >
-                <div className={`px-5 py-3 rounded-2xl shadow-sm text-base max-w-[80%] ${
-                  msg.type === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-md'
-                    : 'bg-gray-100 text-gray-800 rounded-bl-md border border-gray-200'
-                }`}>
-                  {msg.text}
+                <div
+                  className={`px-5 py-3 rounded-2xl shadow-sm text-base max-w-[80%] ${
+                    msg.type === "user"
+                      ? "bg-indigo-600 text-white rounded-br-md"
+                      : "bg-gray-100 text-gray-800 rounded-bl-md border border-gray-200"
+                  }`}
+                >
+                  {msg.type === "user" ? (
+                    <div className="flex items-center">
+                      <span className="mr-2">👤</span>
+                      {msg.text}
+                    </div>
+                  ) : (
+                    <div className="flex items-start">
+                      <span className="mr-2 mt-0.5">🤖</span>
+                      <div className="whitespace-pre-wrap">{msg.text}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -117,12 +150,19 @@ const Chatbot = () => {
               <div className="flex justify-start">
                 <div className="px-5 py-3 rounded-2xl rounded-bl-md text-base bg-gray-100 text-gray-800 animate-pulse border border-gray-200">
                   <div className="flex items-center space-x-2">
+                    <span className="mr-2">🤖</span>
                     <div className="flex space-x-1">
                       <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div
+                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
                     </div>
-                    <span>Thinking...</span>
+                    <span>Analyzing your team data...</span>
                   </div>
                 </div>
               </div>
@@ -137,17 +177,25 @@ const Chatbot = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
+              placeholder="Ask me about your team's progress, daily updates, tasks..."
               className="flex-1 px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-base transition-all duration-200"
               disabled={isLoading}
             />
             <button
               onClick={() => handleSendMessage(inputMessage)}
               className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-base font-semibold hover:bg-indigo-700 transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isLoading}
+              disabled={isLoading || !inputMessage.trim()}
             >
-              Send
+              {isLoading ? "Sending..." : "Send"}
             </button>
+          </div>
+
+          {/* Footer Info */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500">
+              💡 Ask me about daily updates, team progress, task summaries, and
+              more!
+            </p>
           </div>
         </div>
       </div>
