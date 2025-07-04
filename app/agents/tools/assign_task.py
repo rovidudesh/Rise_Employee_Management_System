@@ -1,25 +1,28 @@
 from app.utils.llm import llm_call
 from app.agents.state import AgentState
 from app.database import SessionLocal 
-from app.models import DailyUpdate , Task , User
-from datetime import date 
+from app.models import DailyUpdate, Task, User
+from datetime import date , datetime
 
 
 def assign_task(state: AgentState):
     print('Assigning task...')
     user_input = state["messages"][-1].content
+    session_user_id = state.get("session_user_id")  # Logged-in manager (assigner)
+    today = datetime.today().date()
 
-    # Prompt LLM to return line-by-line output
+    # Prompt LLM to extract only assignee and task details (not assigner)
     prompt = f"""
 From the following task assignment message, extract the following details in order:
 
-1. Full name of the person assigning the task (if not provided, use "Alice Johnson")
-2. Full name of the person receiving the task
-3. Title of the task
-4. Description of the task
-5. Due date (format: YYYY-MM-DD)
-
-Only return these 5 items, one per line.
+1. Full name of the person receiving the task
+2. Title of the task
+3. Description of the task - generate a small description based on the context of the task.
+4. Due date (format: YYYY-MM-DD)
+Today is {today}.Try to extract the date from the text by comparing it with today.
+    If no date is provided, use today: {today}.
+    Return only the name on the first line, and the date on the second line.
+Only return these 4 items, one per line.
 
 Message: "{user_input}"
 """
@@ -27,28 +30,26 @@ Message: "{user_input}"
     response = llm_call(prompt)
     lines = [line.strip() for line in response.strip().splitlines() if line.strip()]
     
-    # Debug print
     print("🔍 Extracted lines:", lines)
 
-    if len(lines) < 5:
+    if len(lines) < 4:
         return {"retrieved_data": "❌ Could not extract all required task information. Please rephrase."}
 
-    assigned_by_name, assigned_to_name, title, description, due_date_str = lines[:5]
+    assigned_to_name, title, description, due_date_str = lines[:4]
 
-    # Fallback if assigner not mentioned
-    if not assigned_by_name:
-        assigned_by_name = "Alice Johnson"
-
-    # Start DB session
     session = SessionLocal()
 
-    assigner = session.query(User).filter_by(full_name=assigned_by_name).first()
+    # Get assigner using session user ID
+    assigner = session.query(User).filter_by(id=session_user_id).first()
+    if not assigner:
+        return {"retrieved_data": "❌ Could not find the logged-in assigner in the system."}
+
+    # Get assignee by name
     assignee = session.query(User).filter_by(full_name=assigned_to_name).first()
+    if not assignee:
+        return {"retrieved_data": f"❌ Could not find assignee '{assigned_to_name}' in the system."}
 
-    if not assigner or not assignee:
-        return {"retrieved_data": f"❌ Could not find assigner or assignee in the system.\nAssigner: {assigned_by_name}, Assignee: {assigned_to_name}"}
-
-    # Create and commit task
+    # Save the new task
     try:
         task = Task(
             title=title,
@@ -56,7 +57,8 @@ Message: "{user_input}"
             due_date=date.fromisoformat(due_date_str),
             assigned_by_id=assigner.id,
             assigned_to_id=assignee.id,
-            status="open"
+            status="open",
+            assigned_date=date.today()
         )
         session.add(task)
         session.commit()
@@ -68,7 +70,7 @@ Message: "{user_input}"
             f"✅ Task assigned!\n\n"
             f"• Title: {title}\n"
             f"• Description: {description}\n"
-            f"• Assigned by: {assigned_by_name}\n"
+            f"• Assigned by: {assigner.full_name}\n"
             f"• Assigned to: {assigned_to_name}\n"
             f"• Due Date: {due_date_str}"
         )

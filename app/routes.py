@@ -1,13 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, url_for
 from langchain_core.messages import HumanMessage
-from app.agents.graph import chatbot_agent  # This is your compiled LangGraph agent
+from app.agents.graph import chatbot_agent3  # This is your compiled LangGraph agent
 from app.agents.state import AgentState     # Your shared agent state structure
 from flask import render_template
 from app.models import User , DailyUpdate
 from app.database import SessionLocal
 from datetime import date
 from werkzeug.security import check_password_hash  # Optional for future hashed passwords
-
+from app.agents.state_helper import serialize_messages , deserialize_messages
 
 main = Blueprint("main", __name__)
 
@@ -141,7 +141,11 @@ def employee_dashboard():
         db.commit()
         flash(" Daily update submitted!")
 
-    return render_template("employee_dashboard.html")
+            # Fetch existing updates for the logged-in employee
+    updates = db.query(DailyUpdate).filter_by(user_id=user_id).order_by(DailyUpdate.date.desc()).all()
+
+    return render_template("employee_dashboard.html", updates=updates)
+
 
 #Manager Page
 @main.route("/manager")
@@ -163,35 +167,79 @@ def manager_dashboard():
 # Chat route for LangGraph agent
 @main.route("/manager/chat")
 def chatbot():
-    return render_template('chat.html')
+    if session.get("role") != "manager":
+        return "Unauthorized", 403
+
+    db = SessionLocal()
+    team = session.get("team")  
+
+    employees = db.query(User).filter(
+        User.role == "employee",
+        User.team == team
+    ).all()
+
+    return render_template('chat.html', employees=employees)  
+
+@main.route("/admin/chat")
+def admin_chat():
+    if session.get("role") != "admin":
+        return "Unauthorized", 403
+    return render_template("chat.html")
 
 
-@main.route("/get", methods=["GET", "POST"])
+@main.route("/employee/chat")
+def employee_chat():
+    if session.get("role") != "employee":
+        return "Unauthorized", 403
+    return render_template("chat.html")
+
+@main.route("/get", methods=["GET","POST"])
 def chat():
-    msg = request.form.get("msg")
-    if not msg:
-        return " No message received."
+    
+    user_input = request.form.get("msg", "").strip()
+    if not user_input:
+        return "No message received."
 
-    user_input = msg
     print(f"[USER] {user_input}")
 
-    # Initial state passed to the LangGraph agent
-    initial_state = {
-        "messages": [HumanMessage(content=user_input)],
-        "query_type": "",        # required by AgentState
-        "retrieved_data": ""     # will be populated
+    # Load previous state from session (if exists)
+    raw_state = session.get("agent_state", {})
+    messages = deserialize_messages(raw_state.get("messages", []))
+
+    # Append new message
+    messages.append(HumanMessage(content=user_input))
+
+    # Create new or carry over prior state
+    state = {
+        "messages": messages,
+        "query_type": raw_state.get("query_type", ""),         # may be overwritten anyway
+        "retrieved_data": raw_state.get("retrieved_data", ""),
+        "session_user_id": session.get("user_id"),
+        "target_employee": raw_state.get("target_employee"),
+        "update_id": raw_state.get("update_id"),
     }
 
     try:
-        # Run LangGraph agent
-        final_state = chatbot_agent.invoke(initial_state)
+        # Call LangGraph agent
+        result = chatbot_agent3.invoke(state)
 
-        # Get the response from the state
-        response = final_state.get("retrieved_data", "⚠️ No data returned.")
+        # Save updated state back into session
+        session["agent_state"] = {
+            "messages": serialize_messages(result["messages"]),
+            "query_type": result.get("query_type"),
+            "retrieved_data": result.get("retrieved_data"),
+            "session_user_id": result.get("session_user_id"),
+            "target_employee": result.get("target_employee"),
+            "update_id": result.get("update_id"),
+        }
+
+        # Send back bot response
+        response = result.get("retrieved_data", "⚠️ No data returned.")
         print(f"[BOT] {response}")
         return response
 
     except Exception as e:
         print(f"[ERROR] {e}")
-        return f" Error: {str(e)}"
+        return f"❌ Error: {str(e)}"
+
     

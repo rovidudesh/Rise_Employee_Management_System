@@ -79,6 +79,76 @@
             height: 38px;
         }
 
+        /* NEW: Styles for Chatbot FAB and Animated Message */
+        .fab-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+        }
+
+        .fab-message {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            opacity: 0;
+            transform: scale(0.5);
+            transform-origin: bottom right;
+            margin-right: 15px;
+            animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.5s forwards;
+        }
+
+        .fab-message.pulse {
+            animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.5s forwards, 
+                       pulse-animation 1.5s infinite 2s;
+        }
+
+        .fab-message .btn-close {
+            margin-left: 10px;
+            font-size: 0.7rem;
+            vertical-align: middle;
+        }
+
+        .fab-chatbot {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .fab-chatbot:hover {
+            background-color: var(--primary-light);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes pop-in {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes pulse-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
     </style>
 </head>
 <body>
@@ -87,8 +157,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <!-- Updated logo path -->
-                <img src="{{ url_for('static', filename='images/rise.jpg') }}" alt="RiseTech Village Logo" class="me-2"
+                <img src="{{ url_for('static', filename='images/rise.png') }}" alt="RiseTech Village Logo" class="me-2"
                      onerror="this.onerror=null;this.src='https://placehold.co/40x40/5c2c9d/ffffff?text=R';">
                 <span class="fw-bold fs-5 text-dark">RiseTech Village</span>
             </a>
@@ -127,6 +196,7 @@
             </div>
             <div class="card-body">
                 <form method="POST">
+                    <!-- Form fields remain the same -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="f_name" class="form-label">First Name</label>
@@ -179,6 +249,7 @@
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
+                        <!-- Table content remains the same -->
                         <thead class="table-light">
                             <tr>
                                 <th>Full Name</th>
@@ -225,7 +296,50 @@
         </div>
     </div>
     
+    <!-- Chatbot Floating Action Button & Animated Message -->
+    <div class="fab-container">
+        <div id="fab-message" class="fab-message">
+            Use Rise Pal to make your work easy!
+            <button type="button" class="btn-close btn-close-white" id="close-fab-message" aria-label="Close"></button>
+        </div>
+        <a href="{{ url_for('main.admin_chat') }}" class="fab-chatbot">
+            <i class="bi bi-robot"></i>
+        </a>
+    </div>
+    
     <!-- Bootstrap JS Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- NEW: Script for FAB animation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fabMessage = document.getElementById('fab-message');
+            const closeFabMessageBtn = document.getElementById('close-fab-message');
+
+            const hideMessage = () => {
+                fabMessage.style.display = 'none';
+                sessionStorage.setItem('fabMessageShown', 'true');
+            };
+
+            // Check if the message has been shown in this session
+            if (!sessionStorage.getItem('fabMessageShown')) {
+                // Add pulse animation class
+                fabMessage.classList.add('pulse');
+
+                // Hide it after 10 seconds
+                const hideTimeout = setTimeout(hideMessage, 10000);
+
+                // Hide it if the close button is clicked
+                closeFabMessageBtn.addEventListener('click', function() {
+                    clearTimeout(hideTimeout); // Stop the automatic hide
+                    hideMessage();
+                });
+
+            } else {
+                // If already shown, make sure it's hidden from the start
+                fabMessage.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
