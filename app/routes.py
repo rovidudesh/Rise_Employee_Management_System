@@ -91,43 +91,128 @@ def api_logout():
         return jsonify({"error": str(e)}), 500
 
 
-#Admin Page - Add User
-@main.route("/admin" , methods=["GET", "POST"])
-def admin_dashboard():
+# Add User API endpoint
+@main.route("/api/admin/add-user", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def add_user():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is admin
     if session.get("role") != "admin":
-        return "Unauthorized", 403
-
-    db = SessionLocal()
-
-    if request.method == "POST":
-        # Handle Add User form
-        f_name = request.form.get("f_name")
-        l_name = request.form.get("l_name")
-        full_name = f"{f_name} {l_name}"
-        email = request.form.get("email")
-        pword = request.form.get("password")
-        role = request.form.get("role")
-        team = request.form.get("team")
-        status = request.form.get("status")
-
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        data = request.get_json()
+        full_name = data.get("full_name")
+        email = data.get("email")
+        password = data.get("password")
+        role = data.get("role")
+        status = data.get("status")
+        team = data.get("team")  # Optional field
+        
+        # Validate required fields
+        if not all([full_name, email, password, role, status]):
+            return jsonify({"error": "All fields are required (full_name, email, password, role, status)"}), 400
+        
+        # Validate role
+        valid_roles = ["admin", "manager", "employee"]
+        if role not in valid_roles:
+            return jsonify({"error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"}), 400
+        
+        # Validate status
+        valid_statuses = ["active", "inactive"]
+        if status not in valid_statuses:
+            return jsonify({"error": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"}), 400
+        
+        # Split full name into first and last name
+        name_parts = full_name.strip().split()
+        if len(name_parts) < 2:
+            return jsonify({"error": "Full name must contain at least first and last name"}), 400
+        
+        f_name = name_parts[0]
+        l_name = " ".join(name_parts[1:])  # Join remaining parts as last name
+        
+        db = SessionLocal()
+        
+        # Check if email already exists
+        existing_user = db.query(User).filter(User.email == email).first()
+        if existing_user:
+            return jsonify({"error": "Email already exists"}), 409
+        
+        # Check if full name already exists
+        existing_full_name = db.query(User).filter(User.full_name == full_name).first()
+        if existing_full_name:
+            return jsonify({"error": "Full name already exists"}), 409
+        
+        # Create new user
         new_user = User(
             f_name=f_name,
             l_name=l_name,
             full_name=full_name,
             email=email,
-            pword=pword,
+            pword=password,  # In production, hash this password
             role=role,
             team=team,
             status=status
         )
-
+        
         db.add(new_user)
         db.commit()
-        flash(" New user added successfully!")
+        
+        return jsonify({
+            "message": "User created successfully",
+            "user": {
+                "id": new_user.id,
+                "full_name": new_user.full_name,
+                "email": new_user.email,
+                "role": new_user.role,
+                "team": new_user.team,
+                "status": new_user.status
+            }
+        }), 201
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
 
-    # GET: Fetch all users
-    users = db.query(User).all()
-    return render_template("admin_dashboard.html", users=users)
+# Get all users API endpoint
+@main.route("/api/admin/users", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def get_all_users():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is admin
+    if session.get("role") != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        db = SessionLocal()
+        users = db.query(User).all()
+        
+        users_list = []
+        for user in users:
+            users_list.append({
+                "id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "role": user.role,
+                "team": user.team,
+                "status": user.status
+            })
+        
+        return jsonify({
+            "users": users_list
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+
 
 #Updating User Status
 @main.route("/admin/update_status/<int:user_id>", methods=["POST"])
@@ -227,6 +312,56 @@ def chat():
     except Exception as e:
         print(f"[ERROR] {e}")
         return f" Error: {str(e)}"
+
+
+# Update user status API endpoint
+@main.route("/api/admin/update-status/<int:user_id>", methods=["PUT", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def update_user_status_api(user_id):
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is admin
+    if session.get("role") != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        data = request.get_json()
+        new_status = data.get("status")
+        
+        if not new_status:
+            return jsonify({"error": "Status is required"}), 400
+        
+        # Validate status
+        valid_statuses = ["active", "inactive"]
+        if new_status not in valid_statuses:
+            return jsonify({"error": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"}), 400
+        
+        db = SessionLocal()
+        user = db.query(User).get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        user.status = new_status
+        db.commit()
+        
+        return jsonify({
+            "message": f"Status for {user.full_name} updated to {new_status}",
+            "user": {
+                "id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "role": user.role,
+                "team": user.team,
+                "status": user.status
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
 
 
 
