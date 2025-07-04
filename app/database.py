@@ -16,6 +16,6 @@ SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bi
 # Initialize tables
 def init_db():
     Base.metadata.create_all(bind=engine)
-    print("✅ Database initialized and session is ready.")
+    print(" Database initialized and session is ready.")
 
 
