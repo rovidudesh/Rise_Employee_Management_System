@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Chat - RiseTech Village</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #5c2c9d; /* Purple from logo */
+            --primary-light: #7c3aed;
+            --accent-color: #f4b939;  /* Yellow from logo */
+            --light-gray: #f8f9fa;
+            --bs-body-bg: var(--light-gray);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .navbar-brand img {
+            height: 40px;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+
+        .main-content {
+            padding: 2.5rem 1.5rem;
+            height: calc(100vh - 70px); /* Full height minus navbar */
+            overflow-y: hidden;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-card {
+             height: calc(100vh - 120px); /* Adjust height based on padding and navbar */
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem 0.75rem 0 0 !important;
+        }
+
+        .msg_card_body {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .card-footer {
+            background-color: #fff;
+            border-top: 1px solid #f1f3f5;
+            padding: 1rem;
+        }
+
+        .msg_cotainer {
+            background-color: #f1f3f5;
+            padding: 0.75rem 1rem;
+            border-radius: 15px 15px 15px 0;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .msg_cotainer_send {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 15px 15px 0 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .msg_time, .msg_time_send {
+            display: block;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .msg_time_send {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .user_img_msg {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            font-size: 1.2rem;
+        }
+        
+        .bot-icon {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .send_btn {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            border-radius: 0 0.375rem 0.375rem 0 !important;
+        }
+        .send_btn:hover {
+            background-color: var(--primary-light);
+        }
+
+        .type_msg {
+            border-right: 0;
+        }
+        .type_msg:focus {
+            box-shadow: none;
+            border-color: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='images/rise.png') }}" alt="RiseTech Village Logo" class="me-2"
+                     onerror="this.onerror=null;this.src='https://placehold.co/40x40/5c2c9d/ffffff?text=R';">
+                <span class="fw-bold fs-5 text-dark">RiseTech Village</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary d-flex align-items-center me-2">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger d-flex align-items-center">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <div class="main-content container-fluid">
+        <div class="row h-100">
+            <!-- Chatbot Interface Column -->
+            <div class="col-lg-7 h-100">
+                <div class="card chat-card">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="user_img_msg bot-icon me-3">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                             <div class="user_info">
+                                 <h5 class="mb-0 fw-bold">Rise Pal</h5>
+                                 <p class="mb-0 text-muted small">Admin Assistant</p>
+                             </div>
+                        </div>
+                    </div>
+                    <div id="message-container" class="card-body msg_card_body">
+                        <!-- Bot welcome message -->
+                        <div class="d-flex justify-content-start mb-4">
+                            <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
+                            <div class="msg_cotainer">
+                                Hello, Admin! How can I assist you today?
+                                <span class="msg_time">Now</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                         <form id="messageArea" class="input-group">
+                             <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
+                             <button type="submit" id="send" class="btn send_btn"><i class="bi bi-send-fill"></i></button>
+                         </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Users Information Column -->
+            <div class="col-lg-5 h-100">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0 fw-bold">All Current Users</h5>
+                    </div>
+                    <div class="card-body" style="overflow-y: auto;">
+                        <p class="text-muted">A list of all users in the system.</p>
+                        <ul class="list-group list-group-flush">
+                           {% for user in users %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-person-fill me-2 text-muted"></i>
+                                        {{ user.full_name }}
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">{{ user.role | capitalize }}</span>
+                                </li>
+                           {% else %}
+                                <li class="list-group-item text-muted">No users found.</li>
+                           {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            $("#messageArea").on("submit", function(event) {
+                event.preventDefault();
+
+                const date = new Date();
+                const hour = date.getHours().toString().padStart(2, '0');
+                const minute = date.getMinutes().toString().padStart(2, '0');
+                const str_time = hour + ":" + minute;
+                var rawText = $("#text").val();
+
+                if (rawText.trim() === '') {
+                    return;
+                }
+
+                var userHtml = `
+                    <div class="d-flex justify-content-end mb-4">
+                        <div class="msg_cotainer_send">
+                            ${rawText}
+                            <span class="msg_time_send">${str_time}</span>
+                        </div>
+                        <div class="user_img_msg ms-2"><i class="bi bi-person-fill"></i></div>
+                    </div>`;
+                
+                $("#text").val("");
+                $("#message-container").append(userHtml);
+                $("#message-container").scrollTop($("#message-container")[0].scrollHeight);
+
+
+                $.ajax({
+                    data: {
+                        msg: rawText,  
+                    },
+                    type: "POST",
+                    url: "/get", 
+                }).done(function(data) {
+                    var botHtml = `
+                        <div class="d-flex justify-content-start mb-4">
+                            <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
+                            <div class="msg_cotainer">
+                                ${data}
+                                <span class="msg_time">${str_time}</span>
+                            </div>
+                        </div>`;
+                    $("#message-container").append(botHtml);
+                    $("#message-container").scrollTop($("#message-container")[0].scrollHeight);
+                }).fail(function() {
+                    var errorHtml = `
+                        <div class="d-flex justify-content-start mb-4">
+                            <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
+                            <div class="msg_cotainer">
+                                Sorry, I'm having trouble connecting. Please try again later.
+                                <span class="msg_time">${str_time}</span>
+                            </div>
+                        </div>`;
+                    $("#message-container").append(errorHtml);
+                    $("#message-container").scrollTop($("#message-container")[0].scrollHeight);
+                });
+            });
+        });
+    </script>
+    
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

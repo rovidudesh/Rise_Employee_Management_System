@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage
 from app.agents.graph import chatbot_agent3  # This is your compiled LangGraph agent
 from app.agents.state import AgentState     # Your shared agent state structure
 from flask import render_template
-from app.models import User , DailyUpdate
+from app.models import User , DailyUpdate , Task
 from app.database import SessionLocal
 from datetime import date
 from werkzeug.security import check_password_hash  # Optional for future hashed passwords
@@ -184,14 +184,39 @@ def chatbot():
 def admin_chat():
     if session.get("role") != "admin":
         return "Unauthorized", 403
-    return render_template("chat.html")
+    
+    db = SessionLocal()
+    users = db.query(User).all()  # 👈 Get all users
+    return render_template("admin_chat.html", users=users)
 
 
 @main.route("/employee/chat")
 def employee_chat():
     if session.get("role") != "employee":
         return "Unauthorized", 403
-    return render_template("chat.html")
+
+    db = SessionLocal()
+    user_id = session.get("user_id")
+
+    # Get latest updates by the current employee
+    updates = (
+        db.query(DailyUpdate)
+        .filter(DailyUpdate.user_id == user_id)
+        .order_by(DailyUpdate.date.desc())
+        .all()
+    )
+
+    # Get tasks assigned to this employee
+    tasks = (
+        db.query(Task)
+        .filter(Task.assigned_to_id == user_id)
+        .order_by(Task.due_date.asc())
+        .all()
+    )
+
+    db.close()
+    return render_template("employee_chat.html", updates=updates, tasks=tasks)
+
 
 @main.route("/get", methods=["GET","POST"])
 def chat():
