@@ -11,12 +11,12 @@ def create_user(state: AgentState):
     prompt = f"""
 From the following text, extract and return exactly these 6 lines:
 
-1. First name - extract the first name of the user by analyzing the text
-2. Last name -  extract the last name of the user second name by analyzing the text
+1. First name - extract the first name of the user by analyzing the text(make the first letter uppercase)
+2. Last name -  extract the last name of the user second name by analyzing the text(make the first letter uppercase)
 3. Email- generate an email based on the first and last name and finally use @riseteachvillage.com
 4. Password - generate a password like firstname123
-5. Role (admin, manager, or employee)
-6. Team
+5. Role - (admin, manager, or employee)-(make the first letter uppercase)
+6. Team - extract the just the team name like Software , HR , Operations -(make the first letter uppercase)
 
 Text: "{user_input}"
 

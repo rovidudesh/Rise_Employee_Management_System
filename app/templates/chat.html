@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot - RiseTech Village</title>
+    <title>Manager Chat - RiseTech Village</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -42,7 +42,7 @@
         }
 
         .main-content {
-            padding: 2.5rem 1.5rem;
+            padding: 1.5rem;
             height: calc(100vh - 70px); /* Full height minus navbar */
             overflow-y: hidden;
         }
@@ -57,7 +57,7 @@
         }
         
         .chat-card {
-             height: calc(100vh - 120px); /* Adjust height based on padding and navbar */
+             height: calc(100vh - 120px);
         }
 
         .card-header {
@@ -85,6 +85,17 @@
             border-radius: 15px 15px 15px 0;
             max-width: 80%;
             word-wrap: break-word;
+        }
+        
+        .msg_cotainer ul {
+            padding-left: 1.2rem;
+            margin-bottom: 0;
+        }
+        .msg_cotainer p {
+            margin-bottom: 0.5rem;
+        }
+        .msg_cotainer p:last-child {
+            margin-bottom: 0;
         }
 
         .msg_cotainer_send {
@@ -140,6 +151,21 @@
             box-shadow: none;
             border-color: var(--primary-light);
         }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 991.98px) {
+            .main-content {
+                height: auto;
+                overflow-y: auto;
+            }
+            .chat-card, .info-card {
+                height: auto;
+                margin-bottom: 1.5rem;
+            }
+            .chat-card {
+                min-height: 60vh;
+            }
+        }
     </style>
 </head>
 <body>
@@ -167,7 +193,7 @@
     <div class="main-content container-fluid">
         <div class="row h-100">
             <!-- Chatbot Interface Column -->
-            <div class="col-lg-7 h-100">
+            <div class="col-lg-7 mb-4 mb-lg-0">
                 <div class="card chat-card">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
@@ -176,7 +202,7 @@
                             </div>
                              <div class="user_info">
                                  <h5 class="mb-0 fw-bold">Rise Pal</h5>
-                                 <p class="mb-0 text-muted small">Ask me anything!</p>
+                                 <p class="mb-0 text-muted small">Manager Assistant</p>
                              </div>
                         </div>
                     </div>
@@ -185,7 +211,7 @@
                         <div class="d-flex justify-content-start mb-4">
                             <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
                             <div class="msg_cotainer">
-                                Hello! How can I assist you today?
+                                Hello, Manager! How can I assist you today?
                                 <span class="msg_time">Now</span>
                             </div>
                         </div>
@@ -199,13 +225,13 @@
                 </div>
             </div>
 
-            <!-- Employee Information Form Column -->
-            <div class="col-lg-5 h-100">
-                <div class="card">
+            <!-- Team Employees Information Column -->
+            <div class="col-lg-5">
+                <div class="card info-card">
                     <div class="card-header">
                         <h5 class="mb-0 fw-bold">Team Employees</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="overflow-y: auto;">
                         <p class="text-muted">A list of employees in your current team.</p>
                         <ul class="list-group list-group-flush">
                            {% for emp in employees %}
@@ -213,9 +239,9 @@
                                     <i class="bi bi-person-fill me-2 text-muted"></i>
                                     {{ emp.full_name }}
                                 </li>
-                            {% else %}
+                           {% else %}
                                 <li class="list-group-item text-muted">No employees found in your team.</li>
-                            {% endfor %}
+                           {% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -224,6 +250,45 @@
     </div>
     
     <script>
+        // --- FUNCTION TO FORMAT BOT RESPONSE ---
+        function formatBotResponse(text) {
+            // Remove the [BOT] prefix if it exists
+            text = text.replace(/^\[BOT\]\s*/, '');
+            
+            let html = '';
+            const lines = text.split('\n');
+            let inList = false;
+
+            lines.forEach(line => {
+                // First, handle bolding for the entire line
+                let formattedLine = line.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                if (formattedLine.startsWith('*')) {
+                    if (!inList) {
+                        html += '<ul>';
+                        inList = true;
+                    }
+                    // Remove the asterisk and trim whitespace
+                    html += `<li>${formattedLine.substring(1).trim()}</li>`;
+                } else {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    if (formattedLine) { // Only add non-empty lines as paragraphs
+                        html += `<p>${formattedLine}</p>`;
+                    }
+                }
+            });
+
+            if (inList) {
+                html += '</ul>'; // Close the list if it's the last element
+            }
+            
+            return html;
+        }
+
+
         $(document).ready(function() {
             $("#messageArea").on("submit", function(event) {
                 event.preventDefault();
@@ -254,29 +319,31 @@
 
                 $.ajax({
                     data: {
-                        msg: rawText,   
+                        msg: rawText,  
                     },
                     type: "POST",
                     url: "/get", 
                 }).done(function(data) {
+                    var formattedData = formatBotResponse(data);
+
                     var botHtml = `
                         <div class="d-flex justify-content-start mb-4">
-                             <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
-                             <div class="msg_cotainer">
-                                ${data}
+                            <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
+                            <div class="msg_cotainer">
+                                ${formattedData}
                                 <span class="msg_time">${str_time}</span>
-                             </div>
+                            </div>
                         </div>`;
                     $("#message-container").append(botHtml);
                     $("#message-container").scrollTop($("#message-container")[0].scrollHeight);
                 }).fail(function() {
                     var errorHtml = `
-                         <div class="d-flex justify-content-start mb-4">
-                             <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
-                             <div class="msg_cotainer">
+                        <div class="d-flex justify-content-start mb-4">
+                            <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
+                            <div class="msg_cotainer">
                                 Sorry, I'm having trouble connecting. Please try again later.
                                 <span class="msg_time">${str_time}</span>
-                             </div>
+                            </div>
                         </div>`;
                     $("#message-container").append(errorHtml);
                     $("#message-container").scrollTop($("#message-container")[0].scrollHeight);

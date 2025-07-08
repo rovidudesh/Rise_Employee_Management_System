@@ -42,7 +42,7 @@
         }
 
         .main-content {
-            padding: 2.5rem 1.5rem;
+            padding: 1.5rem;
             height: calc(100vh - 70px); /* Full height minus navbar */
             overflow-y: hidden;
         }
@@ -57,7 +57,7 @@
         }
         
         .chat-card {
-             height: calc(100vh - 120px); /* Adjust height based on padding and navbar */
+             height: calc(100vh - 120px);
         }
 
         .card-header {
@@ -85,6 +85,17 @@
             border-radius: 15px 15px 15px 0;
             max-width: 80%;
             word-wrap: break-word;
+        }
+        
+        .msg_cotainer ul {
+            padding-left: 1.2rem;
+            margin-bottom: 0;
+        }
+        .msg_cotainer p {
+            margin-bottom: 0.5rem;
+        }
+        .msg_cotainer p:last-child {
+            margin-bottom: 0;
         }
 
         .msg_cotainer_send {
@@ -147,6 +158,21 @@
         .accordion-button:focus {
             box-shadow: 0 0 0 0.25rem rgba(92, 44, 157, 0.25);
         }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 991.98px) {
+            .main-content {
+                height: auto;
+                overflow-y: auto;
+            }
+            .chat-card, .info-card {
+                height: auto;
+                margin-bottom: 1.5rem;
+            }
+            .chat-card {
+                min-height: 60vh;
+            }
+        }
     </style>
 </head>
 <body>
@@ -174,7 +200,7 @@
     <div class="main-content container-fluid">
         <div class="row h-100">
             <!-- Chatbot Interface Column -->
-            <div class="col-lg-7 h-100">
+            <div class="col-lg-7 mb-4 mb-lg-0">
                 <div class="card chat-card">
                     <div class="card-header">
                         <div class="d-flex align-items-center">
@@ -207,8 +233,8 @@
             </div>
 
             <!-- My Activity Column -->
-            <div class="col-lg-5 h-100">
-                <div class="card">
+            <div class="col-lg-5">
+                <div class="card info-card">
                     <div class="card-header">
                         <h5 class="mb-0 fw-bold">My Activity</h5>
                     </div>
@@ -269,6 +295,44 @@
     </div>
     
     <script>
+        // --- UPDATED FUNCTION TO FORMAT BOT RESPONSE ---
+        function formatBotResponse(text) {
+            // Remove the [BOT] prefix if it exists
+            text = text.replace(/^\[BOT\]\s*/, '');
+            
+            let html = '';
+            const lines = text.split('\n');
+            let inList = false;
+
+            lines.forEach(line => {
+                // First, handle bolding for the entire line
+                let formattedLine = line.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                if (formattedLine.startsWith('*')) {
+                    if (!inList) {
+                        html += '<ul>';
+                        inList = true;
+                    }
+                    // Remove the asterisk and trim whitespace
+                    html += `<li>${formattedLine.substring(1).trim()}</li>`;
+                } else {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    if (formattedLine) { // Only add non-empty lines as paragraphs
+                        html += `<p>${formattedLine}</p>`;
+                    }
+                }
+            });
+
+            if (inList) {
+                html += '</ul>'; // Close the list if it's the last element
+            }
+            
+            return html;
+        }
+
         $(document).ready(function() {
             $("#messageArea").on("submit", function(event) {
                 event.preventDefault();
@@ -304,11 +368,13 @@
                     type: "POST",
                     url: "/get", 
                 }).done(function(data) {
+                    var formattedData = formatBotResponse(data);
+
                     var botHtml = `
                         <div class="d-flex justify-content-start mb-4">
                             <div class="user_img_msg bot-icon me-2"><i class="bi bi-robot"></i></div>
                             <div class="msg_cotainer">
-                                ${data}
+                                ${formattedData}
                                 <span class="msg_time">${str_time}</span>
                             </div>
                         </div>`;

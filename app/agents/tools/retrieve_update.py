@@ -15,7 +15,7 @@ def retrieve_updates(state: AgentState):
     "{user_input}"
     Today is {today}.Try to extract the date from the text by comparing it with today.
     If no date is provided, use today: {today}.
-    Return only the name on the first line, and the date on the second line.
+    Return only the name on the first line (convert the name to first letter uppercase in the given first and last name), and the date on the second line.
     """
     result = llm_call(extraction_prompt).splitlines()
     

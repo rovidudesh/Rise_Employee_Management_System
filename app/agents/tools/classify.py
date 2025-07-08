@@ -16,7 +16,7 @@ Here are the categories and their required fields:
    → If the query asks about work updates of an employee.  
    ✅ Required:  
      - Employee name  
-     - Date of the update (in any clear format like "today", "July 2", etc.)  
+     - Date of the update (in any clear format like "today", "July 2 2025", "2025.04.16" or any format etc.)  
    ❌ If either is missing → classify as "other".
 
 2. **assign_task**  
@@ -28,11 +28,11 @@ Here are the categories and their required fields:
    ❌ If any of these are missing → classify as "other".
 
 3. **create_user**  
-   → If the query is about adding/registering a new user or employee.  
+   → If the query is about adding new user, employee or manager.  
    ✅ Required:  
-     - Full name of the employee  
-     - Role (e.g., developer, designer, etc.)  
-     - Team or department  
+     - Full name of the employee 
+     - Role (e.g.,employee, manager , admin uppercase or lowercase any)   
+     - Team or department (software, HR, Operations, etc. - uppercase or lowercase any)
    ❌ If any of these are missing → classify as "other".
 
 4. **submit_update**  
@@ -45,6 +45,7 @@ Here are the categories and their required fields:
 5. **other**  
    → If the query does not clearly match any of the above **OR** is incomplete or vague.
 
+   first try to analyze and understand the query because the user may not give the query with perfect format ,and try to configure catergory excatly
 ---
 
 Query:  
