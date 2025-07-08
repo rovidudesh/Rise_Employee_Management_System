@@ -71,7 +71,7 @@ const Chatbot = () => {
   return (
     <div className="w-full max-w-6xl mx-auto font-inter">
       <div className="flex justify-center">
-        <div className="w-full max-w-2xl bg-white p-8 sm:p-10 md:p-12 rounded-2xl shadow-lg border border-gray-200">
+        <div className="w-full max-w-4xl bg-white p-8 sm:p-10 md:p-12 rounded-2xl shadow-lg border border-gray-200">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-800">
               Employee Assistant
@@ -92,7 +92,7 @@ const Chatbot = () => {
               <p className="text-base font-medium text-gray-700 mb-4">
                 Try these suggestions:
               </p>
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {suggestedPrompts.map((prompt, index) => (
                   <button
                     key={index}
@@ -108,7 +108,7 @@ const Chatbot = () => {
           )}
 
           {/* Chat Messages */}
-          <div className="flex flex-col gap-4 mb-6 max-h-[400px] overflow-y-auto pr-2">
+          <div className="flex flex-col gap-4 mb-6 max-h-[500px] overflow-y-auto pr-2">
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -117,7 +117,7 @@ const Chatbot = () => {
                 }`}
               >
                 <div
-                  className={`px-5 py-3 rounded-2xl shadow-sm text-base max-w-[80%] ${
+                  className={`px-5 py-3 rounded-2xl shadow-sm text-base max-w-[75%] ${
                     msg.type === "user"
                       ? "bg-blue-600 text-white rounded-br-md"
                       : "bg-gray-100 text-gray-800 rounded-bl-md border border-gray-200"
