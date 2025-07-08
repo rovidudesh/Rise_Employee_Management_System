@@ -12,10 +12,8 @@ const Chatbot = () => {
   }, [messages]);
 
   const suggestedPrompts = [
-    "How many tasks have been submitted today?",
     "What has my team done today?",
     "Summarize the tasks submitted yesterday",
-    "Show me daily updates for this week",
     "Who hasn't submitted their daily update today?",
   ];
 
@@ -87,12 +85,7 @@ const Chatbot = () => {
             )}
           </div>
 
-          <div className="mb-6 text-center">
-            <p className="text-lg sm:text-xl text-gray-600 mb-2">Hi Manager!</p>
-            <p className="text-xl sm:text-2xl font-semibold text-gray-800">
-              How can I help you manage your team today?
-            </p>
-          </div>
+          
 
           {/* Suggested Prompts */}
           {messages.length === 0 && (

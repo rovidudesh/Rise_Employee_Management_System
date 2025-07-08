@@ -15,26 +15,33 @@ import {
 } from "react-icons/fa";
 import { logout } from "../../../lib/api";
 
-const SideNavigation = () => {
+interface SideNavigationProps {
+  activeComponent: string;
+  setActiveComponent: (component: string) => void;
+}
+
+const SideNavigation: React.FC<SideNavigationProps> = ({
+  activeComponent,
+  setActiveComponent,
+}) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  const links = [
+  const navigationItems = [
     {
-      section: "TASKS",
-      items: [
-        {
-          href: "/manager",
-          label: "Chatbot",
-          icon: <FaRobot className="mr-4 text-xl" />,
-        },
-        {
-          href: "/manager/all-tasks",
-          label: "Team Members",
-          icon: <FaTasks className="mr-4 text-xl" />,
-        },
-      ],
+      id: "chatbot",
+      label: "Manager Assistant",
+      icon: "🤖",
+      description: "AI Assistant for team management",
+      href: "/manager",
+    },
+    {
+      id: "users",
+      label: "My Team",
+      icon: "👥",
+      description: "View team members",
+      href: "/manager/all-tasks",
     },
   ];
 
@@ -94,37 +101,39 @@ const SideNavigation = () => {
       >
         {/* Navigation Links */}
         <div className="flex-1">
-          {links.map((section, idx) => (
-            <div key={idx} className="mb-10">
-              <h3 className="text-xl font-semibold text-gray-800 mb-8">
-                {section.section}
-              </h3>
-              <nav>
-                <ul>
-                  {section.items.map((item, i) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <li key={i} className="mb-5 last:mb-0">
-                        <Link
-                          href={item.href}
-                          className={`flex items-center px-5 py-4 rounded-lg transition-colors duration-200 text-lg ${
-                            isActive
-                              ? "text-indigo-600 font-semibold border-l-4 border-indigo-600 bg-indigo-50"
-                              : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
-                          }`}
-                          onClick={() => setIsOpen(false)} // close sidebar on mobile when link clicked
-                        >
-                          {item.icon}
-                          {item.label}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-            </div>
-          ))}
+          <h2 className="text-xl font-bold text-gray-800 mb-6">
+            Manager Dashboard
+          </h2>
+
+          <nav className="space-y-3">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveComponent(item.id);
+                  toggleSidebar();
+                }}
+                className={`w-full text-left p-4 rounded-lg transition-all duration-200 ${
+                  activeComponent === item.id
+                    ? "bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700"
+                    : "hover:bg-gray-50 text-gray-700"
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">{item.icon}</span>
+                  <div>
+                    <div className="font-semibold">{item.label}</div>
+                    <div className="text-sm text-gray-500">
+                      {item.description}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </nav>
         </div>
+
+        
 
         {/* Logout Button */}
         <div className="border-t pt-4">
