@@ -58,7 +58,7 @@ const Navbar = () => {
                 : "hover:text-indigo-600 hover:border-indigo-300 border-b-2 border-transparent"
             }`}
           >
-            Profile
+            ChatBot
           </Link>
           <Link
             href="/employee/history"

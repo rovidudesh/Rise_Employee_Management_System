@@ -2,7 +2,7 @@
 import React from 'react';
 import Navbar from '../components/employee/Navbar';
 import Footer from '../components/Footer';
-import ProfileDashboard from '../components/employee/ProfileDashboard';
+import Chatbot from '../components/employee/Chatbot';
 
 const Page = () => {
   return (
@@ -10,7 +10,7 @@ const Page = () => {
       <Navbar />
 
       <main className="flex-grow">
-        <ProfileDashboard />
+        <Chatbot />
       </main>
 
       <Footer />
