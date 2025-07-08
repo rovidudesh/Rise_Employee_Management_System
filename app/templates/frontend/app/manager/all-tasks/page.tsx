@@ -2,7 +2,7 @@
 import React from "react";
 import Header from "../../components/admin/Header";
 import Footer from "../../components/Footer";
-import AllTasksTable from "../../components/manager/AllTasksTable";
+import AllTasksTable from "../../components/manager/AllUsers";
 import SideNavigation from "../../components/manager/SideNav";
 
 const Page = () => {

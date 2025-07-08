@@ -31,7 +31,7 @@ const SideNavigation = () => {
         },
         {
           href: "/manager/all-tasks",
-          label: "All Tasks",
+          label: "Team Members",
           icon: <FaTasks className="mr-4 text-xl" />,
         },
       ],

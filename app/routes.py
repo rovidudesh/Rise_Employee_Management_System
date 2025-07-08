@@ -270,6 +270,53 @@ def chat():
         print(f"[ERROR] {e}")
         return f" Error: {str(e)}"
 
+# Get manager team members API endpoint
+@main.route("/api/manager/team-members", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def get_manager_team_members():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is manager
+    if session.get("role") != "manager":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        manager_team = session.get("team")
+
+        if not manager_team:
+            return jsonify({"error": "Manager team not found"}), 400
+        
+        db = SessionLocal()
+
+        # Get all employees in the same team as the manager
+        employees = db.query(User).filter(
+            User.team == manager_team,
+            User.role == "employee"
+        ).order_by(User.full_name).all()
+
+        employees_list = []
+        for employee in employees:
+            employees_list.append({
+                "id": employee.id,
+                "full_name": employee.full_name,
+                "email": employee.email,
+                "role": employee.role,
+                "team": employee.team,
+                "status": employee.status
+            })
+
+        return jsonify({
+            "employees": employees_list,
+            "team": manager_team,
+            "total_count": len(employees_list)
+        }), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
 # ----------------------------------------------------------------------------------------
 # Update user status API endpoint - Admin only
 @main.route("/api/admin/update-status/<int:user_id>", methods=["PUT", "OPTIONS"])
@@ -546,6 +593,9 @@ def manager_chatbot_api():
             "success": False,
             "error": f"Chatbot error: {str(e)}"
         }), 500
+
+
+
 
 
 
