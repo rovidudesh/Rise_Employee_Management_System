@@ -251,13 +251,13 @@ def chat():
     user_role = session.get("role", "employee")  # Default to employee if no role
     print(f"[LEGACY CHAT] {user_role.upper()} User: {user_input}")
 
-    # Initial state with role context - same structure as your API endpoints
+    # Initial state with role context - FIXED the field name
     initial_state = {
         "messages": [HumanMessage(content=user_input)],
         "query_type": "",
         "retrieved_data": "",
-        "user_role": user_role,  # Pass the user's role to the chatbot
-        "user_id": session.get("user_id"),
+        "user_role": user_role,
+        "session_user_id": session.get("user_id"),  # Changed to session_user_id
         "team": session.get("team")
     }
 
@@ -570,13 +570,13 @@ def manager_chatbot_api():
         
         print(f"[MANAGER CHATBOT] User: {session.get('full_name')} - Input: {user_input}")
 
-        # Initial state with role context for the single chatbot
+        # Initial state with role context - FIXED the field name
         initial_state = {
             "messages": [HumanMessage(content=user_input)],
             "query_type": "",
             "retrieved_data": "",
-            "user_role": "manager",  # The chatbot will use this to behave accordingly
-            "user_id": session.get("user_id"),
+            "user_role": "manager",
+            "session_user_id": session.get("user_id"),  # Changed to session_user_id
             "team": session.get("team")
         }
 
@@ -624,7 +624,7 @@ def employee_chatbot_api():
             "query_type": "",
             "retrieved_data": "",
             "user_role": "employee",
-            "session_user_id": session.get("user_id"),  # Changed from user_id to session_user_id
+            "session_user_id": session.get("user_id"),  # Changed to session_user_id
             "team": session.get("team")
         }
 
@@ -666,13 +666,13 @@ def admin_chatbot_api():
         
         print(f"[ADMIN CHATBOT] User: {session.get('full_name')} - Input: {user_input}")
 
-        # Initial state with admin role context
+        # Initial state with admin role context - FIXED the field name
         initial_state = {
             "messages": [HumanMessage(content=user_input)],
             "query_type": "",
             "retrieved_data": "",
-            "user_role": "admin",  # The chatbot will use this to behave accordingly
-            "user_id": session.get("user_id"),
+            "user_role": "admin",
+            "session_user_id": session.get("user_id"),  # Changed to session_user_id
             "team": session.get("team")
         }
 

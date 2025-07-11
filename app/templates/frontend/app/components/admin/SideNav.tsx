@@ -144,7 +144,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                 }}
                 className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all duration-200 touch-manipulation ${
                   activeComponent === item.id
-                    ? "bg-red-50 border-l-4 border-red-500 text-red-700 shadow-sm"
+                    ? "bg-blue-50 border-l-4 border-blue-500 text-blue-700 shadow-sm"
                     : "hover:bg-gray-50 text-gray-700 active:bg-gray-100"
                 }`}
               >

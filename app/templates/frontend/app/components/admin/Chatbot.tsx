@@ -114,7 +114,7 @@ const Chatbot = () => {
                     key={index}
                     onClick={() => handlePromptClick(prompt)}
                     disabled={isLoading}
-                    className="w-full text-left px-4 py-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-200 text-base text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors duration-200 text-base text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ⚙️ {prompt}
                   </button>
@@ -135,7 +135,7 @@ const Chatbot = () => {
                 <div
                   className={`px-5 py-3 rounded-2xl shadow-sm text-base max-w-[75%] ${
                     msg.type === "user"
-                      ? "bg-red-600 text-white rounded-br-md"
+                      ? "bg-blue-600 text-white rounded-br-md"
                       : "bg-gray-100 text-gray-800 rounded-bl-md border border-gray-200"
                   }`}
                 >
@@ -186,12 +186,12 @@ const Chatbot = () => {
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask me about users, reports, system management..."
-              className="flex-1 px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent text-base transition-all duration-200"
+              className="flex-1 px-5 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base transition-all duration-200"
               disabled={isLoading}
             />
             <button
               onClick={() => handleSendMessage(inputMessage)}
-              className="bg-red-600 text-white px-8 py-4 rounded-xl text-base font-semibold hover:bg-red-700 transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-600 text-white px-8 py-4 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading || !inputMessage.trim()}
             >
               {isLoading ? "Processing..." : "Send"}
