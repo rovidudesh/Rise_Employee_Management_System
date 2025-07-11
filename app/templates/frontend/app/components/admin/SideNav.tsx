@@ -10,34 +10,51 @@ import {
   FaBars,
   FaTimes,
   FaSignOutAlt,
+  FaRobot,
 } from "react-icons/fa";
 import { logout } from "../../../lib/api";
 
-const SideNavigation = () => {
+interface SideNavigationProps {
+  activeComponent: string;
+  setActiveComponent: (component: string) => void;
+}
+
+const SideNavigation: React.FC<SideNavigationProps> = ({
+  activeComponent,
+  setActiveComponent,
+}) => {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  const links = [
+  const navigationItems = [
     {
-      section: "ADMINISTRATION",
-      items: [
-        {
-          href: "/admin",
-          label: "Register Users",
-          icon: <FaUserPlus className="mr-3 text-xl" />,
-        },
-        {
-          href: "/admin/manage-users",
-          label: "Manage Users",
-          icon: <FaUsers className="mr-3 text-xl" />,
-        },
-        {
-          href: "/admin/profile",
-          label: "Profile",
-          icon: <FaUser className="mr-3 text-xl" />,
-        },
-      ],
+      id: "chatbot",
+      label: "Admin Assistant",
+      icon: "🤖",
+      description: "AI Assistant for system administration",
+      href: "/admin",
+    },
+    {
+      id: "register-user",
+      label: "Register Users",
+      icon: "👤➕",
+      description: "Add new users to the system",
+      href: "/admin/register-user",
+    },
+    {
+      id: "manage-users",
+      label: "Manage Users",
+      icon: "👥",
+      description: "View and manage all system users",
+      href: "/admin/manage-users",
+    },
+    {
+      id: "profile",
+      label: "Admin Profile",
+      icon: "👨‍💼",
+      description: "View and edit admin profile",
+      href: "/admin/profile",
     },
   ];
 
@@ -65,78 +82,98 @@ const SideNavigation = () => {
 
   return (
     <>
-      {/* Hamburger button: fixed top-left, only on mobile */}
+      {/* Mobile hamburger button - improved positioning and styling */}
       <button
         onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 p-3 rounded-md bg-white shadow-md text-gray-700 lg:hidden"
+        className="fixed top-3 left-3 z-50 p-2.5 rounded-lg bg-white shadow-lg text-gray-700 border border-gray-200 lg:hidden hover:bg-gray-50 transition-all duration-200"
         aria-label={isOpen ? "Close menu" : "Open menu"}
       >
-        {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
       </button>
 
-      {/* Overlay backdrop, close sidebar if click outside */}
+      {/* Overlay backdrop with improved opacity */}
       {isOpen && (
         <div
           onClick={toggleSidebar}
-          className="fixed inset-0 bg-black bg-opacity-30 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-200"
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - optimized for mobile */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white p-6 shadow-md w-72
+          fixed top-0 left-0 h-full bg-white shadow-xl
           transform transition-transform duration-300 ease-in-out
           z-50
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:static lg:translate-x-0 lg:shadow-none
-          rounded-r-lg
+          lg:static lg:translate-x-0 lg:shadow-md
           flex flex-col
+          w-72 sm:w-80
+          overflow-y-auto
         `}
       >
-        {/* Navigation Links */}
-        <div className="flex-1">
-          {links.map((section, idx) => (
-            <div key={idx} className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">
-                {section.section}
-              </h3>
-              <nav>
-                <ul>
-                  {section.items.map((item, i) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <li key={i} className="mb-4 last:mb-0">
-                        <Link
-                          href={item.href}
-                          className={`flex items-center px-4 py-3 rounded transition-colors duration-200 ${
-                            isActive
-                              ? "text-indigo-600 font-semibold border-l-4 border-indigo-600 bg-indigo-50"
-                              : "text-gray-600 hover:text-indigo-600 hover:bg-gray-50"
-                          }`}
-                          onClick={() => setIsOpen(false)} // close sidebar on mobile when link clicked
-                        >
-                          {item.icon}
-                          {item.label}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-            </div>
-          ))}
+        {/* Header - improved mobile layout */}
+        <div className="p-4 sm:p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+              Admin Dashboard
+            </h2>
+            {/* Close button on mobile */}
+            <button
+              onClick={toggleSidebar}
+              className="lg:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+              aria-label="Close menu"
+            >
+              <FaTimes size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Logout Button */}
-        <div className="border-t pt-4">
+        {/* Navigation Links - improved mobile spacing */}
+        <div className="flex-1 p-3 sm:p-4">
+          <nav className="space-y-2">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveComponent(item.id);
+                  if (window.innerWidth < 1024) {
+                    setTimeout(() => toggleSidebar(), 100); // Small delay for better UX
+                  }
+                }}
+                className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all duration-200 touch-manipulation ${
+                  activeComponent === item.id
+                    ? "bg-red-50 border-l-4 border-red-500 text-red-700 shadow-sm"
+                    : "hover:bg-gray-50 text-gray-700 active:bg-gray-100"
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <span className="text-xl sm:text-2xl flex-shrink-0">
+                    {item.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-sm sm:text-base truncate">
+                      {item.label}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                      {item.description}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Logout Button - improved mobile layout */}
+        <div className="border-t border-gray-200 p-3 sm:p-4">
           <button
             onClick={handleLogout}
-            className="flex items-center px-4 py-3 rounded transition-colors duration-200 w-full text-left text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="flex items-center w-full p-3 sm:p-4 rounded-lg transition-colors duration-200 text-red-600 hover:text-red-700 hover:bg-red-50 active:bg-red-100 touch-manipulation"
           >
-            <FaSignOutAlt className="mr-3 text-xl" />
-            Logout
+            <FaSignOutAlt className="mr-3 text-lg sm:text-xl flex-shrink-0" />
+            <span className="font-medium text-sm sm:text-base">Logout</span>
           </button>
         </div>
       </aside>
