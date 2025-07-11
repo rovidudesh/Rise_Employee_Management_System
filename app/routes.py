@@ -245,30 +245,32 @@ def chatbot():
 def chat():
     msg = request.form.get("msg")
     if not msg:
-        return " No message received."
-
+        return "No message received."
+    
     user_input = msg
-    print(f"[USER] {user_input}")
+    user_role = session.get("role", "employee")  # Default to employee if no role
+    print(f"[LEGACY CHAT] {user_role.upper()} User: {user_input}")
 
-    # Initial state passed to the LangGraph agent
+    # Initial state with role context - same structure as your API endpoints
     initial_state = {
         "messages": [HumanMessage(content=user_input)],
-        "query_type": "",        # required by AgentState
-        "retrieved_data": ""     # will be populated
+        "query_type": "",
+        "retrieved_data": "",
+        "user_role": user_role,  # Pass the user's role to the chatbot
+        "user_id": session.get("user_id"),
+        "team": session.get("team")
     }
 
     try:
-        # Run LangGraph agent
+        # Use the same role-aware chatbot as your API endpoints
         final_state = chatbot_agent.invoke(initial_state)
-
-        # Get the response from the state
         response = final_state.get("retrieved_data", "⚠️ No data returned.")
-        print(f"[BOT] {response}")
+        print(f"[LEGACY CHAT] Bot Response: {response}")
         return response
 
     except Exception as e:
-        print(f"[ERROR] {e}")
-        return f" Error: {str(e)}"
+        print(f"[LEGACY CHAT ERROR] {e}")
+        return f"Error: {str(e)}"
 
 # Get manager team members API endpoint
 @main.route("/api/manager/team-members", methods=["GET", "OPTIONS"])
@@ -568,17 +570,19 @@ def manager_chatbot_api():
         
         print(f"[MANAGER CHATBOT] User: {session.get('full_name')} - Input: {user_input}")
 
-        # Initial state passed to the LangGraph agent
+        # Initial state with role context for the single chatbot
         initial_state = {
             "messages": [HumanMessage(content=user_input)],
-            "query_type": "",        # required by AgentState
-            "retrieved_data": ""     # will be populated
+            "query_type": "",
+            "retrieved_data": "",
+            "user_role": "manager",  # The chatbot will use this to behave accordingly
+            "user_id": session.get("user_id"),
+            "team": session.get("team")
         }
 
-        # Run LangGraph agent
+        # Use the single role-aware chatbot
         final_state = chatbot_agent.invoke(initial_state)
 
-        # Get the response from the state
         response = final_state.get("retrieved_data", "⚠️ No data returned.")
         print(f"[MANAGER CHATBOT] Bot Response: {response}")
         
@@ -594,6 +598,103 @@ def manager_chatbot_api():
             "error": f"Chatbot error: {str(e)}"
         }), 500
 
+# Employee chatbot API endpoint
+@main.route("/api/employee/chatbot", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def employee_chatbot_api():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # Check if user is employee
+    if session.get("role") != "employee":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        data = request.get_json()
+        user_input = data.get("message")
+
+        if not user_input:
+            return jsonify({"error": "Message is required"}), 400
+        
+        print(f"[EMPLOYEE CHATBOT] User: {session.get('full_name')} - Input: {user_input}")
+
+        # Initial state with employee role context - FIXED the field name
+        initial_state = {
+            "messages": [HumanMessage(content=user_input)],
+            "query_type": "",
+            "retrieved_data": "",
+            "user_role": "employee",
+            "session_user_id": session.get("user_id"),  # Changed from user_id to session_user_id
+            "team": session.get("team")
+        }
+
+        # same chatbot with employee context
+        final_state = chatbot_agent.invoke(initial_state)
+
+        response = final_state.get("retrieved_data", "⚠️ No data returned.")
+        print(f"[EMPLOYEE CHATBOT] Bot Response: {response}")
+
+        return jsonify({
+            "success": True,
+            "response": response
+        }), 200
+    
+    except Exception as e:
+        print(f"[EMPLOYEE CHATBOT ERROR] {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Chatbot error: {str(e)}"
+        }), 500
+    
+# Admin chatbot API endpoint
+@main.route("/api/admin/chatbot", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["http://localhost:3000"], supports_credentials=True)
+def admin_chatbot_api():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
+    # check if user is admin
+    if session.get("role") != "admin":
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        data = request.get_json()
+        user_input = data.get("message")
+
+        if not user_input:
+            return jsonify({"error": "Message is required"}), 400
+        
+        print(f"[ADMIN CHATBOT] User: {session.get('full_name')} - Input: {user_input}")
+
+        # Initial state with admin role context
+        initial_state = {
+            "messages": [HumanMessage(content=user_input)],
+            "query_type": "",
+            "retrieved_data": "",
+            "user_role": "admin",  # The chatbot will use this to behave accordingly
+            "user_id": session.get("user_id"),
+            "team": session.get("team")
+        }
+
+        # same chatbot with admin context
+        final_state = chatbot_agent.invoke(initial_state)
+
+        response = final_state.get("retrieved_data", "⚠️ No data returned.")
+        print(f"[ADMIN CHATBOT] Bot Response: {response}")
+
+        return jsonify({
+            "success": True,
+            "response": response
+        }), 200
+    
+    except Exception as e:
+        print(f"[ADMIN CHATBOT ERROR] {e}")
+        return jsonify({
+            "success": False,
+            "error": f"Chatbot error: {str(e)}"
+        }), 500
+    
+# legacy chatbot endpoint
 
 
 

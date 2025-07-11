@@ -1,7 +1,7 @@
 from app.utils.llm import llm_call
 from app.agents.state import AgentState
 from app.database import SessionLocal 
-from app.models import DailyUpdate , User
+from app.models import DailyUpdate, User
 from datetime import datetime
 
 
@@ -15,39 +15,45 @@ def retrieve_updates(state: AgentState):
     "{user_input}"
     Today is {today}.Try to extract the date from the text by comparing it with today.
     If no date is provided, use today: {today}.
-    Return only the name on the first line, and the date on the second line.
+    Return only the name on the first line (convert the name to first letter uppercase in the given first and last name), and the date on the second line.
     """
     result = llm_call(extraction_prompt).splitlines()
-    emp_name, req_date = result[0].strip(), result[1].strip()
+    
+    if len(result) < 2:
+        return {"retrieved_data": "❌ Could not extract both name and date. Please rephrase."}
 
-    # Start DB session
-    session = SessionLocal()
-    # Step 2: Query user and updates
+    emp_name, req_date = result[0], result[1]
+
     with SessionLocal() as session:
         user = session.query(User).filter(User.full_name == emp_name).first()
-
         if not user:
-            return {"retrieved_data": f"No employee found with name: {emp_name}"}
+            return {"retrieved_data": f"❌ No employee found with name: {emp_name}"}
 
-        # Filter DailyUpdate by user ID and date
-        updates = session.query(DailyUpdate).filter(
-            DailyUpdate.user_id == user.id,
-            DailyUpdate.date == req_date
-        ).all()
-
-        if not updates:
-            return {"retrieved_data": f"No updates found for {emp_name} on {req_date}"}
-
-        # Format updates
-        updates_str = "\n".join(
-            f"{u.date} - {u.title}: {u.work_done}" for u in updates
+        # Step 2: Query only the latest update of that day (by created time or ID)
+        update = (
+            session.query(DailyUpdate)
+            .filter(DailyUpdate.user_id == user.id, DailyUpdate.date == req_date)
+            .order_by(DailyUpdate.id.desc())
+            .first()
         )
 
-    # Step 3: Summarize
-    summary_prompt = f"Summarize the following work updates for {emp_name} on {req_date}:\n{updates_str}"
-    summary = llm_call(summary_prompt)
+        if not update:
+            return {"retrieved_data": f"ℹ️ No updates found for {emp_name} on {req_date}"}
 
-    return {
-        "retrieved_data": f"Summary for {emp_name} on {req_date}:\n\n{summary}",
-        "target_employee": {"id": user.id, "name": user.full_name}
-    }
+        # Step 3: Summarize this update
+        update_info = f"{update.date} - {update.title}: {update.work_done}"
+        summary_prompt = f"Summarize the following work update for {emp_name} on {req_date}:\n{update_info}"
+        summary = llm_call(summary_prompt)
+
+        return {
+            "retrieved_data": f"📋 Summary for {emp_name} on {req_date}:\n\n{summary}",
+            "target_employee": {
+                "id": user.id,
+                "name": user.full_name
+            },
+            "update_id": {
+                "id": update.id,
+                "date": str(update.date),
+                "title": update.title
+            }
+        }

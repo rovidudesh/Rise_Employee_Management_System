@@ -5,3 +5,9 @@ class AgentState(TypedDict):
     messages: List[BaseMessage]
     query_type: Optional[str]
     retrieved_data: Optional[str]
+    session_user_id: Optional[str]  
+    target_employee: Optional[dict]  
+    update_id : Optional[dict]
+
+
+

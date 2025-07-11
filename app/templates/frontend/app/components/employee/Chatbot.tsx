@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { sendEmployeeChatMessage } from "../../../lib/api";
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
@@ -21,20 +22,23 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log("Sending message to employee chatbot:", prompt);
 
-      // Dummy responses for now
-      const responses = [
-        "Here's your task overview for today. You have 3 pending tasks and 2 completed ones.",
-        "Based on your recent activity, you're performing well. Keep up the good work!",
-        "Your daily update has been recorded. Great progress on the current project!",
-        "I can help you with task management, progress tracking, and productivity tips.",
-      ];
+      // Call the actual backend API
+      const result = await sendEmployeeChatMessage(prompt);
 
-      return responses[Math.floor(Math.random() * responses.length)];
+      if (result.success) {
+        console.log("Employee chatbot response:", result.response);
+        return result.response;
+      } else {
+        console.error("Employee chatbot error:", result.message);
+        return (
+          result.message ||
+          "Sorry, I couldn't process your request. Please try again."
+        );
+      }
     } catch (error) {
-      console.error("Chatbot Error:", error);
+      console.error("Employee Chatbot Error:", error);
       return "Connection error. Please try again later.";
     } finally {
       setIsLoading(false);
@@ -45,14 +49,24 @@ const Chatbot = () => {
     if (!text.trim()) return;
 
     // Add user message immediately
-    setMessages((prev) => [...prev, { type: "user", text: text.trim() }]);
+    const userMessage = {
+      type: "user",
+      text: text.trim(),
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
     setInputMessage("");
 
     // Get bot response
     const response = await generateChatbotResponse(text.trim());
 
     // Add bot response
-    setMessages((prev) => [...prev, { type: "bot", text: response }]);
+    const botMessage = {
+      type: "bot",
+      text: response,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, botMessage]);
   };
 
   const handlePromptClick = (prompt) => handleSendMessage(prompt);
@@ -185,7 +199,8 @@ const Chatbot = () => {
           {/* Footer Info */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              💡 Ask me about your tasks, progress tracking, productivity tips, and more!
+              💡 Ask me about your tasks, progress tracking, productivity tips,
+              and more!
             </p>
           </div>
         </div>
