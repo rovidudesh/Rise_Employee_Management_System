@@ -19,14 +19,12 @@ const AssignedTasksQuickView = () => {
         const result = await getEmployeeTasks();
 
         if (result.success) {
-          // Map API response to component format and add default priority if missing
           const mappedTasks = result.tasks.map((task) => ({
             ...task,
-            priority: task.priority || ("medium" as "medium"), // Default priority
+            priority: task.priority || ("medium" as "medium"),
             status: mapTaskStatus(task.status),
           }));
 
-          // Filter for active tasks (pending, in_progress, overdue)
           const activeTasks = mappedTasks.filter(
             (task) =>
               task.status === "pending" ||
@@ -34,16 +32,14 @@ const AssignedTasksQuickView = () => {
               task.status === "overdue"
           );
 
-          setTasks(activeTasks.slice(0, 5)); // Show latest 5 active tasks
+          setTasks(activeTasks.slice(0, 5));
         } else {
           setError(result.message || "Failed to fetch tasks");
-          // Fallback to dummy data for development
           setTasks(getDummyTasks());
         }
       } catch (err) {
         console.error("Error fetching tasks:", err);
         setError("Network error occurred");
-        // Fallback to dummy data for development
         setTasks(getDummyTasks());
       } finally {
         setLoading(false);
@@ -53,7 +49,6 @@ const AssignedTasksQuickView = () => {
     fetchTasks();
   }, []);
 
-  // Map backend status to component status
   const mapTaskStatus = (
     status: string
   ): "pending" | "in_progress" | "completed" | "overdue" => {
@@ -70,7 +65,6 @@ const AssignedTasksQuickView = () => {
     return statusMap[status] || "pending";
   };
 
-  // Fallback dummy data for development
   const getDummyTasks = (): AssignedTask[] => [
     {
       id: 1,
@@ -108,30 +102,30 @@ const AssignedTasksQuickView = () => {
   const getPriorityClasses = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400";
       case "high":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400";
       case "medium":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400";
       case "low":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300";
     }
   };
 
   const getStatusClasses = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400";
       case "in_progress":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400";
       case "pending":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300";
       case "overdue":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300";
     }
   };
 
@@ -154,11 +148,11 @@ const AssignedTasksQuickView = () => {
   const showCustomMessage = (message: string) => {
     const messageBox = document.createElement("div");
     messageBox.className =
-      "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50";
+      "fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-70 flex items-center justify-center z-50 p-4";
     messageBox.innerHTML = `
-      <div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-md mx-auto">
-        <p class="text-sm font-semibold text-gray-800 mb-4 whitespace-pre-line">${message}</p>
-        <button id="closeMessageBox" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 text-sm">
+      <div class="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-xl text-center max-w-sm mx-auto border border-gray-200 dark:border-gray-700 w-full">
+        <p class="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-200 mb-4 whitespace-pre-line">${message}</p>
+        <button id="closeMessageBox" class="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition duration-200 text-sm w-full sm:w-auto">
           OK
         </button>
       </div>
@@ -199,10 +193,12 @@ const AssignedTasksQuickView = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 h-fit">
-        <div className="flex justify-center items-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-sm text-gray-600">Loading tasks...</span>
+      <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-6 h-fit transition-colors duration-300">
+        <div className="flex justify-center items-center h-24 sm:h-32">
+          <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <span className="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            Loading tasks...
+          </span>
         </div>
       </div>
     );
@@ -210,11 +206,11 @@ const AssignedTasksQuickView = () => {
 
   if (error) {
     return (
-      <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 h-fit">
-        <div className="text-center py-8">
-          <div className="text-red-400 mb-2">
+      <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-6 h-fit transition-colors duration-300">
+        <div className="text-center py-6 sm:py-8">
+          <div className="text-red-400 dark:text-red-500 mb-2">
             <svg
-              className="mx-auto h-8 w-8"
+              className="mx-auto h-6 w-6 sm:h-8 sm:w-8"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -227,28 +223,36 @@ const AssignedTasksQuickView = () => {
               />
             </svg>
           </div>
-          <p className="text-sm text-red-600">{error}</p>
-          <p className="text-xs text-gray-500 mt-1">Using demo data</p>
+          <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Using demo data
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6 h-fit">
+    <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-6 h-fit transition-colors duration-300">
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-3 sm:mb-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">Assigned Tasks</h3>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100">
+            Assigned Tasks
+          </h3>
+          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
             {tasks.length} active
           </span>
         </div>
-        <p className="text-sm text-gray-600 mt-1">Your current assignments</p>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Your current assignments
+        </p>
       </div>
 
       {/* Tasks Cards */}
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="space-y-2 sm:space-y-3 max-h-64 sm:max-h-96 overflow-y-auto">
         {tasks.map((task) => {
           const daysUntilDue = task.due_date
             ? getDaysUntilDue(task.due_date)
@@ -256,15 +260,15 @@ const AssignedTasksQuickView = () => {
           return (
             <div
               key={task.id}
-              className="bg-gray-50 rounded-lg p-4 border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors duration-150"
+              className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors duration-150"
               onClick={() => handleTaskClick(task)}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-900 truncate pr-2 flex-1">
+                <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 flex-1">
                   {task.title}
                 </span>
                 <span
-                  className={`px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${getPriorityClasses(
+                  className={`px-1.5 py-0.5 sm:px-2 sm:py-1 inline-flex text-xs leading-4 font-medium rounded-full ${getPriorityClasses(
                     task.priority
                   )} flex-shrink-0`}
                 >
@@ -272,24 +276,24 @@ const AssignedTasksQuickView = () => {
                 </span>
               </div>
               <div className="mb-2">
-                <p className="text-xs text-gray-600 line-clamp-2 pr-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 pr-2">
                   {task.description}
                 </p>
               </div>
               <div className="flex items-center justify-between mb-2">
                 <span
-                  className={`px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${getStatusClasses(
+                  className={`px-1.5 py-0.5 sm:px-2 sm:py-1 inline-flex text-xs leading-4 font-medium rounded-full ${getStatusClasses(
                     task.status
                   )} flex-shrink-0`}
                 >
                   {task.status.replace("_", " ")}
                 </span>
-                <span className="text-xs text-gray-500 truncate ml-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400 truncate ml-2">
                   By: {task.assigned_by}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   Due:{" "}
                   {task.due_date ? formatDate(task.due_date) : "No due date"}
                 </span>
@@ -297,10 +301,10 @@ const AssignedTasksQuickView = () => {
                   <span
                     className={`text-xs font-medium flex-shrink-0 ${
                       daysUntilDue < 0
-                        ? "text-red-600"
+                        ? "text-red-600 dark:text-red-400"
                         : daysUntilDue <= 2
-                        ? "text-orange-600"
-                        : "text-gray-600"
+                        ? "text-orange-600 dark:text-orange-400"
+                        : "text-gray-600 dark:text-gray-400"
                     }`}
                   >
                     {daysUntilDue > 0
@@ -317,10 +321,10 @@ const AssignedTasksQuickView = () => {
 
         {/* Empty state */}
         {tasks.length === 0 && (
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
+          <div className="text-center py-6 sm:py-8">
+            <div className="text-gray-400 dark:text-gray-500 mb-2">
               <svg
-                className="mx-auto h-8 w-8"
+                className="mx-auto h-6 w-6 sm:h-8 sm:w-8"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -333,15 +337,19 @@ const AssignedTasksQuickView = () => {
                 />
               </svg>
             </div>
-            <p className="text-sm text-gray-600">No active tasks</p>
-            <p className="text-xs text-gray-500 mt-1">All caught up!</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              No active tasks
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              All caught up!
+            </p>
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className="mt-4 pt-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-600">
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <span>
             🔥 Urgent:{" "}
             {tasks.filter((task) => task.priority === "urgent").length}
