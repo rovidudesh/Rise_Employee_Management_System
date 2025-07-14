@@ -53,10 +53,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       const response = await logout();
 
       if (response.success) {
-        // Clear any stored user data
         localStorage.removeItem("user");
-
-        // Redirect to login page
         router.push("/");
       } else {
         console.error("Logout failed:", response.message);
@@ -64,13 +61,13 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      setIsOpen(false); // Close sidebar on mobile
+      setIsOpen(false);
     }
   };
 
   return (
     <>
-      {/* Hamburger button: fixed top-left, only on mobile */}
+      {/* Mobile Hamburger button */}
       <button
         onClick={toggleSidebar}
         className="fixed top-4 left-4 z-50 p-3 rounded-md bg-white dark:bg-slate-800 shadow-md text-gray-700 dark:text-gray-200 transition-colors duration-300 lg:hidden"
@@ -79,7 +76,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         {isOpen ? <FaTimes size={28} /> : <FaBars size={28} />}
       </button>
 
-      {/* Overlay backdrop, close sidebar if click outside */}
+      {/* Mobile Overlay */}
       {isOpen && (
         <div
           onClick={toggleSidebar}
@@ -91,14 +88,14 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white dark:bg-slate-800 p-6 shadow-md w-80
-          transform transition-all duration-300 ease-in-out
-          z-50
+          bg-white dark:bg-slate-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700
+          transition-all duration-300 ease-in-out
+          flex flex-col p-6
+          
+          fixed top-0 left-0 w-80 z-50 h-full
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:static lg:translate-x-0 lg:shadow-none
-          rounded-r-lg
-          flex flex-col
-          border-r border-gray-200 dark:border-gray-700
+          
+          lg:static lg:translate-x-0 lg:shadow-lg lg:h-auto lg:min-h-full
         `}
       >
         {/* Header with Theme Toggle */}
@@ -140,7 +137,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         </div>
 
         {/* Logout Button */}
-        <div className="border-t dark:border-gray-600 pt-4">
+        <div className="border-t dark:border-gray-600 pt-4 mt-auto">
           <button
             onClick={handleLogout}
             className="flex items-center px-5 py-4 rounded-lg transition-colors duration-200 w-full text-left text-lg text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
