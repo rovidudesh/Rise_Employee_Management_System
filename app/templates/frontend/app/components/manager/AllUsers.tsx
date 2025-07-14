@@ -59,15 +59,14 @@ const AllUsers = () => {
     }
   };
 
-  // Function to display a custom message with dark mode support
   const showCustomMessage = (message: string) => {
     const messageBox = document.createElement("div");
     messageBox.className =
-      "fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-70 flex items-center justify-center z-50";
+      "fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-70 flex items-center justify-center z-50 p-4";
     messageBox.innerHTML = `
-      <div class="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-xl text-center max-w-md mx-auto border border-gray-200 dark:border-gray-700">
-        <p class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6 whitespace-pre-line">${message}</p>
-        <button id="closeMessageBox" class="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition duration-200 text-base">
+      <div class="bg-white dark:bg-slate-800 p-4 sm:p-6 md:p-8 rounded-lg shadow-xl text-center max-w-sm sm:max-w-md mx-auto border border-gray-200 dark:border-gray-700 w-full">
+        <p class="text-sm sm:text-base md:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 sm:mb-6 whitespace-pre-line">${message}</p>
+        <button id="closeMessageBox" class="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition duration-200 text-sm sm:text-base w-full sm:w-auto">
           OK
         </button>
       </div>
@@ -90,10 +89,10 @@ const AllUsers = () => {
 
   if (loading) {
     return (
-      <div className="w-full h-full flex justify-center items-center">
+      <div className="w-full h-full flex justify-center items-center p-4">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
-          <span className="mt-3 text-gray-600 dark:text-gray-400">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <span className="mt-3 text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Loading team members...
           </span>
         </div>
@@ -103,14 +102,14 @@ const AllUsers = () => {
 
   if (error) {
     return (
-      <div className="w-full h-full flex justify-center items-center">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center max-w-md">
-          <p className="text-red-800 dark:text-red-400 font-medium mb-4">
+      <div className="w-full h-full flex justify-center items-center p-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 sm:p-6 text-center max-w-md w-full">
+          <p className="text-red-800 dark:text-red-400 font-medium mb-4 text-sm sm:text-base">
             {error}
           </p>
           <button
             onClick={fetchTeamMembers}
-            className="px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition duration-200"
+            className="px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition duration-200 text-sm sm:text-base w-full sm:w-auto"
           >
             Retry
           </button>
@@ -120,30 +119,29 @@ const AllUsers = () => {
   }
 
   return (
-    <div className="w-full h-full overflow-hidden flex flex-col">
+    <div className="w-full h-full overflow-hidden flex flex-col p-2 sm:p-0">
       {/* Header */}
-      <div className="mb-6 flex-shrink-0">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+      <div className="mb-4 sm:mb-6 flex-shrink-0">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">
           My Team Members
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           View employees in your team
           {employees.length > 0 && (
-            <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
+            <span className="ml-2 text-xs sm:text-sm text-gray-500 dark:text-gray-500">
               ({employees.length} member{employees.length !== 1 ? "s" : ""})
             </span>
           )}
         </p>
       </div>
 
-      {/* Content - Scrollable */}
+      {/* Content */}
       <div className="flex-1 overflow-auto">
         {employees.length === 0 ? (
-          // Empty state
-          <div className="w-full h-full flex flex-col items-center justify-center text-center py-12">
+          <div className="w-full h-full flex flex-col items-center justify-center text-center py-8 sm:py-12 px-4">
             <div className="text-gray-400 dark:text-gray-500 mb-4">
               <svg
-                className="mx-auto h-16 w-16"
+                className="mx-auto h-12 w-12 sm:h-16 sm:w-16"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -156,18 +154,17 @@ const AllUsers = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               No team members found
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm">
-              It looks like you don't have any team members assigned yet. Check
-              back later or contact your administrator.
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 max-w-sm">
+              It looks like you don't have any team members assigned yet.
             </p>
           </div>
         ) : (
           <>
-            {/* Desktop & Tablet View */}
-            <div className="hidden md:block">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block">
               <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-slate-700">
@@ -236,24 +233,24 @@ const AllUsers = () => {
               </div>
             </div>
 
-            {/* Mobile Card View */}
-            <div className="md:hidden space-y-4">
+            {/* Mobile/Tablet Card View */}
+            <div className="lg:hidden space-y-3 sm:space-y-4">
               {employees.map((employee) => (
                 <div
                   key={employee.id}
-                  className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors duration-150"
+                  className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-3 sm:p-4 border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors duration-150"
                   onClick={() => handleRowClick(employee)}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex justify-between items-start mb-2 sm:mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {employee.full_name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                         {employee.email}
                       </p>
                     </div>
-                    <div className="flex flex-col space-y-1 ml-4">
+                    <div className="flex flex-col space-y-1 ml-2 sm:ml-4 flex-shrink-0">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleClasses(
                           employee.role
@@ -271,7 +268,7 @@ const AllUsers = () => {
                     </div>
                   </div>
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       Team:{" "}
                       <span className="text-gray-700 dark:text-gray-300">
                         {employee.team || "Not assigned"}

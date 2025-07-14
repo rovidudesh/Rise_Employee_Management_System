@@ -3,7 +3,7 @@ import Image from "next/image";
 
 const Header = () => {
   return (
-    <header className="w-full bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 py-4 sm:py-5 px-6 sm:px-8 flex items-center justify-between font-inter transition-colors duration-300">
+    <header className="w-full bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-800 py-4 sm:py-5 px-6 sm:px-8 flex items-center justify-between font-inter transition-colors duration-300 relative z-10">
       {/* Left Section: Logo */}
       <div className="flex items-center">
         <div className="w-12 h-12 sm:w-14 sm:h-10 flex items-center justify-center text-white text-xs font-bold">
