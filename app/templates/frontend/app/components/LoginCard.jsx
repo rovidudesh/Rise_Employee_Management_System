@@ -45,13 +45,13 @@ const LoginForm = () => {
   return (
     <div className="flex flex-col"> 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4 transition-colors duration-300">
           {error}
         </div>
       )}
       <form onSubmit={handleSubmit} className="w-full max-w-sm md:max-w-md lg:max-w-lg">
         <div className="mb-6 mr-4">
-          <label htmlFor="email" className="block text-gray-700 text-lg font-medium mt-4 font-mono md:text-xl">
+          <label htmlFor="email" className="block text-gray-700 dark:text-gray-300 text-lg font-medium mt-4 font-mono md:text-xl transition-colors duration-300">
             email
           </label>
           <input
@@ -63,13 +63,13 @@ const LoginForm = () => {
             required
             className="shadow appearance-none border rounded-lg w-full 
                        py-3 px-4 text-base md:text-lg md:py-4 md:px-5
-                       text-gray-700 leading-tight 
-                       focus:outline-none focus:shadow-outline font-mono border-black" 
+                       text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 leading-tight 
+                       focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 font-mono border-black dark:border-gray-600 transition-colors duration-300" 
             style={{ borderRadius: '8px' }}
           />
         </div>
         <div className="mb-6 mr-4">
-          <label htmlFor="password" className="block text-gray-700 text-lg font-medium font-mono md:text-xl">
+          <label htmlFor="password" className="block text-gray-700 dark:text-gray-300 text-lg font-medium font-mono md:text-xl transition-colors duration-300">
             password
           </label>
           <input
@@ -79,10 +79,10 @@ const LoginForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="shadow appearance-none border rounded-lg w-full text-gray-700 leading-tight
+            className="shadow appearance-none border rounded-lg w-full text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 leading-tight
                        py-3 px-4 text-base
                        md:py-4 md:px-5 md:text-lg
-                       focus:outline-none focus:shadow-outline font-mono border-black" 
+                       focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 font-mono border-black dark:border-gray-600 transition-colors duration-300" 
             style={{ borderRadius: '8px' }}
           />
         </div>
@@ -90,12 +90,12 @@ const LoginForm = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-white text-black font-bold rounded-lg w-full
+            className="bg-white dark:bg-slate-700 text-black dark:text-white font-bold rounded-lg w-full
                        py-3 px-4 mr-4 text-base
                        md:py-4 md:px-6 md:text-lg
                        lg:py-5 lg:px-8 lg:text-xl
-                       focus:outline-none focus:shadow-outline border border-black font-mono
-                       hover:bg-brandPurple hover:text-white transition-colors duration-300
+                       focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 border border-black dark:border-gray-600 font-mono
+                       hover:bg-brandPurple dark:hover:bg-blue-600 hover:text-white dark:hover:border-blue-600 transition-colors duration-300
                        disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ borderRadius: '8px' }}
           >
