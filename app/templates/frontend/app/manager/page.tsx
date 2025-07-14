@@ -14,7 +14,7 @@ const Page = () => {
     switch (activeComponent) {
       case "chatbot":
         return (
-          <div className="flex flex-col lg:flex-row gap-6 w-full">
+          <div className="flex flex-col lg:flex-row gap-6 w-full h-full">
             <div className="flex-1">
               <Chatbot />
             </div>
@@ -27,7 +27,7 @@ const Page = () => {
         return <AllUsers />;
       default:
         return (
-          <div className="flex flex-col lg:flex-row gap-6 w-full">
+          <div className="flex flex-col lg:flex-row gap-6 w-full h-full">
             <div className="flex-1">
               <Chatbot />
             </div>
@@ -43,19 +43,20 @@ const Page = () => {
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 transition-colors duration-300">
       <Header />
 
-      {/* Main Content Area - Updated Layout */}
+      {/* Main Content Area with Fixed Height */}
       <main className="flex-grow p-4 bg-gray-50 dark:bg-slate-800 transition-colors duration-300">
-        <div className="flex gap-6 h-full">
-          {/* Sidebar - Height matches content */}
+        <div className="flex gap-6 h-[calc(100vh-140px)]">
+          {" "}
+          {/* Fixed height calculation */}
+          {/* Sidebar - Fixed Height */}
           <div className="w-80 hidden lg:block">
             <SideNavigation
               activeComponent={activeComponent}
               setActiveComponent={setActiveComponent}
             />
           </div>
-
-          {/* Dynamic Content - Full height */}
-          <div className="flex-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+          {/* Dynamic Content - Fixed Height */}
+          <div className="flex-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300 overflow-hidden">
             <div className="h-full p-6">{renderActiveComponent()}</div>
           </div>
         </div>

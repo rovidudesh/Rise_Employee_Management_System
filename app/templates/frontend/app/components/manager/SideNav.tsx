@@ -85,7 +85,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar with Fixed Height */}
       <aside
         className={`
           bg-white dark:bg-slate-800 shadow-md rounded-lg border border-gray-200 dark:border-gray-700
@@ -95,19 +95,19 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           fixed top-0 left-0 w-80 z-50 h-full
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
           
-          lg:static lg:translate-x-0 lg:shadow-lg lg:h-auto lg:min-h-full
+          lg:static lg:translate-x-0 lg:shadow-lg lg:h-full lg:max-h-full
         `}
       >
         {/* Header with Theme Toggle */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-shrink-0">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
             Manager Dashboard
           </h2>
           <ThemeToggle />
         </div>
 
-        {/* Navigation Links */}
-        <div className="flex-1">
+        {/* Navigation Links - Scrollable if needed */}
+        <div className="flex-1 overflow-y-auto">
           <nav className="space-y-3">
             {navigationItems.map((item) => (
               <button
@@ -136,8 +136,8 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           </nav>
         </div>
 
-        {/* Logout Button */}
-        <div className="border-t dark:border-gray-600 pt-4 mt-auto">
+        {/* Logout Button - Fixed at Bottom */}
+        <div className="border-t dark:border-gray-600 pt-4 flex-shrink-0">
           <button
             onClick={handleLogout}
             className="flex items-center px-5 py-4 rounded-lg transition-colors duration-200 w-full text-left text-lg text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
