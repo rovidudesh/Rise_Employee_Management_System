@@ -10,6 +10,9 @@ import ProfileDashboard from "../components/admin/ProfileDashboard";
 
 const Page = () => {
   const [activeComponent, setActiveComponent] = useState("chatbot");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   const renderContent = () => {
     switch (activeComponent) {
@@ -27,19 +30,23 @@ const Page = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <Header />
+    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 transition-colors duration-300">
+      <Header onMenuClick={toggleSidebar} showMenuButton={true} />
 
       {/* Main Content Area */}
-      <main className="flex-grow flex p-4 gap-6">
+      <main className="flex-grow flex p-4 gap-6 bg-gray-50 dark:bg-slate-800 transition-colors duration-300">
         {/* Sidebar with required props */}
         <SideNavigation
           activeComponent={activeComponent}
           setActiveComponent={setActiveComponent}
+          isOpen={isSidebarOpen}
+          onToggle={toggleSidebar}
         />
 
         {/* Dynamic Content */}
-        <div className="flex-1 flex justify-center">{renderContent()}</div>
+        <div className="flex-1 flex justify-center">
+          <div className="w-full">{renderContent()}</div>
+        </div>
       </main>
 
       <Footer />
