@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   FaUser,
   FaUserPlus,
   FaUsers,
-  FaBars,
   FaTimes,
   FaSignOutAlt,
   FaRobot,
@@ -18,15 +17,18 @@ import ThemeToggle from "../ThemeToggle";
 interface SideNavigationProps {
   activeComponent: string;
   setActiveComponent: (component: string) => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
 const SideNavigation: React.FC<SideNavigationProps> = ({
   activeComponent,
   setActiveComponent,
+  isOpen,
+  onToggle,
 }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
 
   const navigationItems = [
     {
@@ -59,8 +61,6 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     },
   ];
 
-  const toggleSidebar = () => setIsOpen((prev) => !prev);
-
   const handleLogout = async () => {
     try {
       const response = await logout();
@@ -77,40 +77,32 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      setIsOpen(false); // Close sidebar on mobile
+      onToggle(); // Close sidebar on mobile
     }
   };
 
   return (
     <>
-      {/* Mobile hamburger button - improved positioning and styling */}
-      <button
-        onClick={toggleSidebar}
-        className="fixed top-3 left-3 z-50 p-2.5 rounded-lg bg-white dark:bg-slate-800 shadow-lg dark:shadow-2xl dark:shadow-black/50 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 lg:hidden hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-200"
-        aria-label={isOpen ? "Close menu" : "Open menu"}
-      >
-        {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-      </button>
-
-      {/* Overlay backdrop with improved opacity */}
+      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          onClick={toggleSidebar}
+          onClick={onToggle}
           className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40 lg:hidden transition-opacity duration-200"
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar - optimized for mobile */}
+      {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full bg-white dark:bg-slate-900 shadow-xl dark:shadow-2xl dark:shadow-black/50 border-r border-gray-200 dark:border-gray-700
-          transform transition-transform duration-300 ease-in-out
-          z-50
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:static lg:translate-x-0 lg:shadow-md dark:lg:shadow-xl dark:lg:shadow-black/30
+          bg-white dark:bg-slate-900 shadow-xl dark:shadow-2xl dark:shadow-black/50 border-r border-gray-200 dark:border-gray-700
+          transition-all duration-300 ease-in-out
           flex flex-col
-          w-72 sm:w-80
+          
+          fixed top-0 left-0 w-72 sm:w-80 z-50 h-full
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          
+          lg:static lg:translate-x-0 lg:shadow-md dark:lg:shadow-xl dark:lg:shadow-black/30 lg:h-full lg:max-h-full
           overflow-y-auto
         `}
       >
@@ -126,7 +118,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
             <ThemeToggle />
             {/* Close button for mobile */}
             <button
-              onClick={toggleSidebar}
+              onClick={onToggle}
               className="lg:hidden p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
               aria-label="Close menu"
             >
@@ -135,7 +127,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           </div>
         </div>
 
-        {/* Navigation Links - improved mobile spacing */}
+        {/* Navigation Links */}
         <div className="flex-1 p-3 sm:p-4 relative z-10 overflow-y-auto">
           <nav className="space-y-2">
             {navigationItems.map((item) => (
@@ -144,7 +136,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
                 onClick={() => {
                   setActiveComponent(item.id);
                   if (window.innerWidth < 1024) {
-                    setTimeout(() => toggleSidebar(), 100); // Small delay for better UX
+                    setTimeout(() => onToggle(), 100); // Small delay for better UX
                   }
                 }}
                 className={`w-full text-left p-3 sm:p-4 rounded-lg transition-all duration-200 touch-manipulation ${
@@ -171,7 +163,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
           </nav>
         </div>
 
-        {/* Logout Button - improved mobile layout */}
+        {/* Logout Button */}
         <div className="border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4 relative z-10">
           <button
             onClick={handleLogout}
