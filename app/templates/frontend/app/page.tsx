@@ -37,12 +37,23 @@ export default function Home() {
 
           <div className="hidden md:flex items-center justify-center mr-20">
             <div className="relative">
+              {/* Show hero1.svg in light mode */}
               <Image
                 src="/hero.svg"
-                alt="Welcome Image"
+                alt="Welcome Image Light"
                 width={350}
                 height={350}
-                className="w-[350px] md:w-[500px] lg:w-[600px] transition-opacity duration-300"
+                className="w-[350px] md:w-[500px] lg:w-[600px] transition-opacity duration-300 block dark:hidden"
+                priority
+              />
+              {/* Show hero2.svg in dark mode */}
+              <Image
+                src="/hero2.svg"
+                alt="Welcome Image Dark"
+                width={350}
+                height={350}
+                className="w-[350px] md:w-[500px] lg:w-[600px] transition-opacity duration-300 hidden dark:block"
+                priority
               />
               {/* Optional: Subtle overlay for dark mode */}
               <div className="absolute inset-0 bg-black opacity-0 dark:opacity-10 rounded-lg transition-opacity duration-300 pointer-events-none"></div>
