@@ -1,15 +1,12 @@
 "use client";
 import Footer from "./components/Footer";
 import LoginCard from "./components/LoginCard";
-import ThemeToggle from "./components/ThemeToggle";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
-      
-
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-800 transition-colors duration-300">
       {/* Main content */}
       <div className="flex-grow pb-10 md:pb-0">
         <div
