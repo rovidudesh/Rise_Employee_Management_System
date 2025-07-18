@@ -3,62 +3,113 @@ from app.agents.state import AgentState
 from app.database import SessionLocal
 from app.models import User
 
-
 def create_user(state: AgentState):
     user_input = state["messages"][-1].content
+    memory_summary = state.get("memory_summary", "")
 
-    # LLM prompt to extract new user details
-    prompt = f"""
-From the following text, extract and return exactly these 6 lines:
+    # ✨ Step 1: Combine context
+    full_context = f"""
+📌 Summary of Previous Conversation:
+{memory_summary}
 
-1. First name - extract the first name of the user by analyzing the text(make the first letter uppercase)
-2. Last name -  extract the last name of the user second name by analyzing the text(make the first letter uppercase)
-3. Email- generate an email based on the first and last name and finally use @risetechvillage.com
-4. Password - generate a password like firstname123
-5. Role - (admin, manager, or employee)-(make the first letter uppercase)
-6. Team - extract the just the team name like Software , HR , Operations -(make the first letter uppercase)
-
-Text: "{user_input}"
-
-Only return the values, one per line, in the exact order listed.
+🆕 Latest User Message:
+{user_input}
 """
 
-    lines = [line.strip() for line in llm_call(prompt).splitlines() if line.strip()]
-    if len(lines) < 6:
-        return {"retrieved_data": "❌ Failed to extract all required user details. Please try again."}
+    # ✂️ STEP 1: Extract fields (no logic)
+    extraction_prompt = f"""
+You are a data extractor helping an admin add a new employee.
 
-    first_name, last_name, email, password, role, team = lines
-    full_name = f"{first_name} {last_name}".strip()
+Below is the full conversation context:
+-------------------------
+{full_context}
+-------------------------
 
-    session = SessionLocal()
+From this, extract the following fields if clearly mentioned:
+- First Name (capitalized)
+- Last Name (capitalized)
+- Role (Admin, Manager, Employee)
+- Team (e.g., HR, Software, Marketing)
 
-    # Check for duplicate email
-    if session.query(User).filter_by(email=email).first():
-        return {"retrieved_data": f"❌ A user with email `{email}` already exists."}
+Return in **exactly** this format:
+f_name: <first_name or blank('')>
+l_name: <last_name or blank('')>
+role: <role or blank('')>
+team: <team or blank('')>
+"""
 
-    # Create user
-    try:
-        new_user = User(
-            f_name=first_name,
-            l_name=last_name,
-            full_name=full_name,
-            email=email,
-            pword=password,  # Consider hashing in production
-            role=role.lower(),
-            team=team,
-            status="active"
-        )
-        session.add(new_user)
-        session.commit()
-    except Exception as e:
-        return {"retrieved_data": f"❌ Error while creating user: {e}"}
+    raw_output = llm_call(extraction_prompt)
+    print("[DEBUG] Extracted Output:\n", raw_output)
 
-    return {
-        "retrieved_data": (
-            f"✅ User created successfully!\n\n"
-            f"• Name: {full_name}\n"
-            f"• Email: {email}\n"
-            f"• Role: {role.capitalize()}\n"
-            f"• Team: {team}"
-        )
-    }
+    # Parse extracted fields
+    extracted = {"f_name": "", "l_name": "", "role": "", "team": ""}
+    for line in raw_output.splitlines():
+        if ":" in line:
+            key, val = line.split(":", 1)
+            key = key.strip()
+            val = val.strip()
+            if key in extracted:
+                extracted[key] = val
+
+    # Check if all required fields are available
+    if all(extracted.values()):
+        f_name = extracted["f_name"]
+        l_name = extracted["l_name"]
+        role = extracted["role"]
+        team = extracted["team"]
+        full_name = f"{f_name} {l_name}"
+        email = f"{f_name.lower()}.{l_name.lower()}@risetechvillage.com"
+        password = f"{f_name.lower()}123"
+
+        session = SessionLocal()
+
+        # Check for duplicate email
+        if session.query(User).filter_by(email=email).first():
+            return {"retrieved_data": f"❌ A user with email `{email}` already exists."}
+
+        try:
+            new_user = User(
+                f_name=f_name,
+                l_name=l_name,
+                full_name=full_name,
+                email=email,
+                pword=password,  # ⚠️ Replace with hashed password in production
+                role=role.lower(),
+                team=team,
+                status="active"
+            )
+            session.add(new_user)
+            session.commit()
+        except Exception as e:
+            return {"retrieved_data": f"❌ Error while creating user: {e}"}
+
+        return {
+            "retrieved_data": (
+                f"✅ User created successfully!\n\n"
+                f"• Name: {full_name}\n"
+                f"• Email: {email}\n"
+                f"• Role: {role.capitalize()}\n"
+                f"• Team: {team}"
+            )
+        }
+
+    # 🛑 STEP 2: Missing values → Ask for clarification
+    clarification_prompt = f"""
+You're helping an admin add a user. The following information is available:
+
+- First Name: {extracted['f_name'] or '❌ missing'}
+- Last Name: {extracted['l_name'] or '❌ missing'}
+- Role: {extracted['role'] or '❌ missing'}
+- Team: {extracted['team'] or '❌ missing'}
+
+Your task:
+👉 If **any** field is missing, generate a polite and concise message asking the user ONLY for those fields.
+👉 DO NOT guess or fabricate any values.
+👉 Mention any known names in your clarification.
+
+Format: A clear, user-friendly sentence asking for the missing parts.
+"""
+
+    clarification = llm_call(clarification_prompt)
+
+    return {"retrieved_data": f"👋 RisePal needs a bit more info:\n\n{clarification}"}

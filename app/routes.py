@@ -7,7 +7,6 @@ from app.models import User , DailyUpdate , Task
 from app.database import SessionLocal
 from datetime import date
 from werkzeug.security import check_password_hash  # Optional for future hashed passwords
-from app.agents.state_helper import serialize_messages , deserialize_messages
 
 main = Blueprint("main", __name__)
 
@@ -220,51 +219,47 @@ def employee_chat():
 
 @main.route("/get", methods=["GET","POST"])
 def chat():
-    
     user_input = request.form.get("msg", "").strip()
     if not user_input:
-        return "No message received."
+        return "⚠️ No message received."
 
     print(f"[USER] {user_input}")
 
-    # Load previous state from session (if exists)
-    raw_state = session.get("agent_state", {})
-    messages = deserialize_messages(raw_state.get("messages", []))
+    # Get session user ID
+    session_user_id = session.get("user_id")
+    if not session_user_id:
+        return "⚠️ User not logged in."
 
-    # Append new message
-    messages.append(HumanMessage(content=user_input))
-
-    # Create new or carry over prior state
+    # Create fresh agent state for this turn
     state = {
-        "messages": messages,
-        "query_type": raw_state.get("query_type", ""),         # may be overwritten anyway
-        "retrieved_data": raw_state.get("retrieved_data", ""),
-        "session_user_id": session.get("user_id"),
-        "target_employee": raw_state.get("target_employee"),
-        "update_id": raw_state.get("update_id"),
+        "messages": [HumanMessage(content=user_input, additional_kwargs={"user_id": session_user_id})],
+        "query_type": None,
+        "retrieved_data": None,
+        "session_user_id": session_user_id,
+        "target_employee": None,
+        "update_id": None,
+        "memory_summary": None
     }
 
     try:
-        # Call LangGraph agent
         result = chatbot_agent3.invoke(state)
 
-        # Save updated state back into session
+        # Save state (optional)
         session["agent_state"] = {
-            "messages": serialize_messages(result["messages"]),
+            "messages": [msg.dict() for msg in result["messages"]],
             "query_type": result.get("query_type"),
             "retrieved_data": result.get("retrieved_data"),
             "session_user_id": result.get("session_user_id"),
             "target_employee": result.get("target_employee"),
             "update_id": result.get("update_id"),
+            "memory_summary": result.get("memory_summary")
         }
 
-        # Send back bot response
-        response = result.get("retrieved_data", "⚠️ No data returned.")
+        response = result.get("retrieved_data", "⚠️ No response from agent.")
         print(f"[BOT] {response}")
         return response
 
     except Exception as e:
         print(f"[ERROR] {e}")
         return f"❌ Error: {str(e)}"
-
     

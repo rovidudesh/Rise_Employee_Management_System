@@ -1,35 +1,76 @@
 from app.utils.llm import llm_call
 from app.agents.state import AgentState
-from app.database import SessionLocal 
+from app.database import SessionLocal
 from app.models import DailyUpdate, User
 from datetime import datetime
 
 
 def retrieve_updates(state: AgentState):
     user_input = state["messages"][-1].content
+    memory_summary = state.get("memory_summary", "")
     today = datetime.today().date()
 
-    # Step 1: Extract employee name and date via LLM
+    # 🧠 STEP 1: Combine context and extract name + date
+    full_context = f"""
+📌 Memory Summary:
+{memory_summary}
+
+🆕 Latest User Message:
+{user_input}
+
+Today is {today}.
+"""
+
     extraction_prompt = f"""
-    Extract the employee's full name and date (in YYYY-MM-DD format) from:
-    "{user_input}"
-    Today is {today}.Try to extract the date from the text by comparing it with today.
-    If no date is provided, use today: {today}.
-    Return only the name on the first line (convert the name to first letter uppercase in the given first and last name), and the date on the second line.
-    """
-    result = llm_call(extraction_prompt).splitlines()
-    
-    if len(result) < 2:
-        return {"retrieved_data": "❌ Could not extract both name and date. Please rephrase."}
+You're a helpful assistant extracting required information for retrieving an employee's daily update.
 
-    emp_name, req_date = result[0], result[1]
+Use the following conversation context:
+--------------------------
+{full_context}
+--------------------------
 
+Your task:
+- Extract the employee's full name (First Last) with capitalized initials.
+- Extract the requested date in YYYY-MM-DD format.
+- If no date is mentioned, use today's date: {today}.
+
+Return in **exactly** this format:
+name: <full name or ''>
+date: <YYYY-MM-DD or ''>
+"""
+
+    lines = [line.strip() for line in llm_call(extraction_prompt).splitlines() if line.strip()]
+    extracted = {"name": "", "date": ""}
+
+    for line in lines:
+        if line.lower().startswith("name:"):
+            extracted["name"] = line[5:].strip()
+        elif line.lower().startswith("date:"):
+            extracted["date"] = line[5:].strip()
+
+    # ❓ STEP 2: Clarify if missing
+    if not extracted["name"] or not extracted["date"]:
+        clarification_prompt = f"""
+You're assisting a manager trying to retrieve an employee's daily update.
+
+However, some required fields are missing:
+- Name: {extracted['name'] or '❌ missing'}
+- Date: {extracted['date'] or '❌ missing'}
+
+👉 Write a **polite clarification message** asking ONLY for the missing parts. Do not assume anything.
+"""
+        clarification_message = llm_call(clarification_prompt)
+        return {"retrieved_data": f"🤖 RisePal needs more info:\n\n{clarification_message}"}
+
+    emp_name = extracted["name"]
+    req_date = extracted["date"]
+
+    # 📦 STEP 3: Retrieve & summarize
     with SessionLocal() as session:
         user = session.query(User).filter(User.full_name == emp_name).first()
         if not user:
-            return {"retrieved_data": f"❌ No employee found with name: {emp_name}"}
+            return {"retrieved_data": f"❌ No employee found with the name '{emp_name}'."}
 
-        # Step 2: Query only the latest update of that day (by created time or ID)
         update = (
             session.query(DailyUpdate)
             .filter(DailyUpdate.user_id == user.id, DailyUpdate.date == req_date)
@@ -38,11 +79,20 @@ def retrieve_updates(state: AgentState):
         )
 
         if not update:
-            return {"retrieved_data": f"ℹ️ No updates found for {emp_name} on {req_date}"}
+            return {"retrieved_data": f"ℹ️ No updates found for {emp_name} on {req_date}."}
 
-        # Step 3: Summarize this update
-        update_info = f"{update.date} - {update.title}: {update.work_done}"
-        summary_prompt = f"Summarize the following work update for {emp_name} on {req_date}:\n{update_info}"
+        summary_prompt = f"""
+You're summarizing a daily work update for manager view.
+
+Employee: {emp_name}
+Date: {update.date}
+
+Work Details:
+• Title: {update.title}
+• Summary: {update.work_done}
+
+📝 Write a clear and short summary for this update.
+"""
         summary = llm_call(summary_prompt)
 
         return {
