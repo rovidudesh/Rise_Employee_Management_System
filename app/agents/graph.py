@@ -53,4 +53,4 @@ graph.add_edge("submit_update", END)
 graph.add_edge("retrieve_updates", END)
 
 # Compile
-chatbot_agent3 = graph.compile()
+chatbot_agent = graph.compile()
