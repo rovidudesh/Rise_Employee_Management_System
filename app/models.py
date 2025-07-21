@@ -1,6 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Date, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, Date, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from datetime import date
+from datetime import date, datetime
 
 Base = declarative_base()
 
@@ -60,3 +60,14 @@ class DailyUpdate(Base):
     user = relationship("User", back_populates="updates")
     task = relationship("Task", back_populates="updates")
 
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    sender = Column(String, nullable=False)  # 'user' or 'bot'
+    message = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="chat_messages")
