@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from .models import Base
 
 # SQLite database URI
-DATABASE_URL = "sqlite:///employee_task3.db"
+DATABASE_URL = "sqlite:///employee_task4.db"
 
 # Create engine
 engine = create_engine(DATABASE_URL, echo=False)
