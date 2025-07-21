@@ -7,17 +7,13 @@ from app.database import SessionLocal  # this is your DB session creator
 
 
 def handle_memory_node(state: dict) -> dict:
-    """
-    LangGraph-compatible memory node.
-    Internally creates a DB session and uses it.
-    """
     db = SessionLocal()
 
-    session_id = state.get("session_user_id")
+    user_id = state.get("session_user_id")  # This is the actual user ID
     messages: list[BaseMessage] = state.get("messages", [])
 
-    if not session_id or not messages:
-        raise ValueError("Missing session ID or messages in agent state")
+    if not user_id or not messages:
+        raise ValueError("Missing user ID or messages in agent state")
 
     new_message = messages[-1]
     if not isinstance(new_message, HumanMessage):
@@ -27,7 +23,7 @@ def handle_memory_node(state: dict) -> dict:
 
     # Step 1: Get all previous messages (excluding this new one)
     previous_msgs = db.query(ChatMessage)\
-        .filter(ChatMessage.session_id == session_id)\
+        .filter(ChatMessage.user_id == user_id)\
         .order_by(ChatMessage.timestamp.asc()).all()
 
     history_lines = [f"{msg.sender.capitalize()}: {msg.message}" for msg in previous_msgs]
@@ -74,7 +70,6 @@ or
 Keep the summary concise and structured. Do NOT explain or speculate.
 """
 
-    
     try:
         summary = llm_call(prompt).strip()
     except Exception as e:
@@ -83,16 +78,14 @@ Keep the summary concise and structured. Do NOT explain or speculate.
 
     # Step 3: Save the new message
     db.add(ChatMessage(
-        session_id=session_id,
-        user_id=new_message.additional_kwargs.get("user_id"),  # optional
+        session_id=user_id,  # If you have a real session_id, use it here
+        user_id=user_id,
         sender="user",
         message=user_input,
         timestamp=datetime.utcnow()
     ))
     db.commit()
 
-    
     print(f"[SUMMARY] Summary generated: {summary}")
-    # Step 4: Return updated state
     state["memory_summary"] = summary
     return state
