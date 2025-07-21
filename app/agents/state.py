@@ -8,6 +8,4 @@ class AgentState(TypedDict):
     session_user_id: Optional[str]  
     target_employee: Optional[dict]  
     update_id : Optional[dict]
-
-
-
+    memory_summary: Optional[str]
