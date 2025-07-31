@@ -68,7 +68,7 @@ const Page = () => {
           </div>
 
           {/* Dynamic Content */}
-          <div className="flex-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300 overflow-hidden min-h-0">
+          <div className="flex-1 bg-white dark:bg-slate-900  shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-300 overflow-hidden min-h-0">
             <div className="h-full p-2 sm:p-4 lg:p-6 overflow-hidden">
               {renderActiveComponent()}
             </div>

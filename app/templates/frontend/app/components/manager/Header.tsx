@@ -79,7 +79,8 @@ const Header: React.FC<HeaderProps> = ({
       {/* Right Section: Theme Toggle, Navigation & Logout */}
       <div className="flex items-center space-x-2">
         <ThemeToggle />
-        <nav className="flex space-x-2 sm:space-x-4">
+        {/* Hide navigation and logout on mobile, show only on md+ */}
+        <nav className="hidden md:flex space-x-2 sm:space-x-4">
           {navigationItems.map((item) => (
             <button
               key={item.id}
@@ -98,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({
         </nav>
         <button
           onClick={handleLogout}
-          className="flex items-center px-3 py-2 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="hidden md:flex items-center px-3 py-2 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
         >
           <FaSignOutAlt className="mr-2" />
           <span className="hidden sm:inline"></span>
