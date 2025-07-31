@@ -17,12 +17,7 @@ const Page = () => {
 
       <main className="flex-grow flex gap-8 px-8 py-6 bg-gray-50 dark:bg-slate-800 transition-colors duration-300">
         {/* Sidebar with required props */}
-        <SideNavigation
-          activeComponent={activeComponent}
-          setActiveComponent={setActiveComponent}
-          isOpen={isSidebarOpen}
-          onToggle={toggleSidebar}
-        />
+        
 
         {/* Dashboard content flex-grow fills the rest */}
         <div className="flex-grow min-w-0">

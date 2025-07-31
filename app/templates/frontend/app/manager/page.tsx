@@ -21,9 +21,6 @@ const Page = () => {
             <div className="flex-1 min-h-0">
               <Chatbot />
             </div>
-            <div className="w-full lg:w-auto lg:max-w-md xl:max-w-lg flex-shrink-0">
-              <TeamQuickView />
-            </div>
           </div>
         );
       case "users":
@@ -48,20 +45,17 @@ const Page = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-slate-900 transition-colors duration-300">
-      <Header onMenuClick={toggleSidebar} showMenuButton={true} />
+      <Header
+        onMenuClick={toggleSidebar}
+        showMenuButton={true}
+        activeComponent={activeComponent}
+        setActiveComponent={setActiveComponent}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 p-2 sm:p-4 bg-gray-50 dark:bg-slate-800 transition-colors duration-300 overflow-hidden">
         <div className="flex gap-0 lg:gap-6 h-full">
-          {/* Desktop Sidebar */}
-          <div className="w-80 hidden lg:block flex-shrink-0">
-            <SideNavigation
-              activeComponent={activeComponent}
-              setActiveComponent={setActiveComponent}
-              isOpen={sidebarOpen}
-              onToggle={toggleSidebar}
-            />
-          </div>
+          
 
           {/* Mobile Sidebar */}
           <div className="lg:hidden">

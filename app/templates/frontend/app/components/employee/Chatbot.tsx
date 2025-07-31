@@ -117,7 +117,7 @@ const Chatbot = () => {
           }`}
         >
           {messages.length === 0 && (
-            <div className="text-center text-gray-400 mt-4">
+            <div className="text-center text-gray-400 dark:text-gray-500 mt-4">
               <span>Ask whatever you want…</span>
             </div>
           )}
@@ -133,7 +133,7 @@ const Chatbot = () => {
                   ${
                     msg.type === "user"
                       ? "bg-purple-600 text-white rounded-l-2xl rounded-tr-2xl"
-                      : "bg-gray-800 text-gray-100 rounded-r-2xl rounded-tl-2xl"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-r-2xl rounded-tl-2xl"
                   }`}
                 style={{
                   marginLeft: msg.type === "user" ? "auto" : undefined,
@@ -146,93 +146,89 @@ const Chatbot = () => {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="whitespace-pre-line text-base max-w-[80%] px-4 py-2 bg-gray-800 text-gray-100 rounded-r-2xl rounded-tl-2xl animate-pulse">
+              <div className="whitespace-pre-line text-base max-w-[80%] px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-r-2xl rounded-tl-2xl animate-pulse">
                 <span>🤖 Typing…</span>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      {/* Input Bar */}
-      {hasUserMessage ? (
-        // Fixed input bar at the bottom after first user message
-        <div className="fixed bottom-0 left-0 w-full flex justify-center z-50 bg-transparent">
-          <div className="w-full max-w-2xl px-2 pb-16">
-            {" "}
-            {/* Increased pb-16 for more space above bottom */}
-            <form
-              className="flex items-center gap-2 w-full rounded-xl shadow px-3 py-2 bg-gray-900"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSendMessage(inputMessage);
-              }}
-            >
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask whatever you want…"
-                className="flex-1 px-3 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 text-gray-100 bg-gray-800 text-sm"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50 text-sm"
-                disabled={isLoading || !inputMessage.trim()}
+        {/* Input Bar */}
+        {hasUserMessage ? (
+          <div className="fixed bottom-0 left-0 w-full flex justify-center z-50 bg-transparent">
+            <div className="w-full max-w-2xl px-2 pb-16">
+              <form
+                className="flex items-center gap-2 w-full rounded-xl shadow px-3 py-2 bg-white dark:bg-gray-900"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage(inputMessage);
+                }}
               >
-                Send
-              </button>
-              {messages.length > 0 && (
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask whatever you want…"
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 text-sm"
+                  disabled={isLoading}
+                />
                 <button
-                  type="button"
-                  onClick={clearChat}
-                  className="ml-1 px-3 py-1 text-xs bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors duration-200 shadow"
+                  type="submit"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50 text-sm"
+                  disabled={isLoading || !inputMessage.trim()}
                 >
-                  Clear
+                  Send
                 </button>
-              )}
-            </form>
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearChat}
+                    className="ml-1 px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 shadow"
+                  >
+                    Clear
+                  </button>
+                )}
+              </form>
+            </div>
           </div>
-        </div>
-      ) : (
-        // Normal input bar before first user message
-        <form
-          className="flex items-center gap-2 w-full max-w-2xl rounded-xl shadow px-3 py-2 mt-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage(inputMessage);
-          }}
-        >
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask whatever you want…"
-            className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-slate-700 text-sm"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50 text-sm"
-            disabled={isLoading || !inputMessage.trim()}
+        ) : (
+          <form
+            className="flex items-center gap-2 w-full max-w-2xl rounded-xl shadow px-3 py-2 mt-2 bg-white dark:bg-gray-900"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage(inputMessage);
+            }}
           >
-            Send
-          </button>
-          {messages.length > 0 && (
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask whatever you want…"
+              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 text-sm"
+              disabled={isLoading}
+            />
             <button
-              type="button"
-              onClick={clearChat}
-              className="ml-1 px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 shadow"
+              type="submit"
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50 text-sm"
+              disabled={isLoading || !inputMessage.trim()}
             >
-              Clear
+              Send
             </button>
-          )}
-        </form>
-      )}
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={clearChat}
+                className="ml-1 px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 shadow"
+              >
+                Clear
+              </button>
+            )}
+          </form>
+        )}
+      </div>
     </div>
   );
 };
