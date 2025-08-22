@@ -7,6 +7,8 @@ from app.database import SessionLocal  # this is your DB session creator
 
 
 def handle_memory_node(state: dict) -> dict:
+    message = state["messages"][-1].content
+
     """
     LangGraph-compatible memory node.
     Internally creates a DB session and uses it.
@@ -71,7 +73,7 @@ or
 - Provided: To: Alex, Title: Finalize Report, Due: July 18
 - Missing: Task description
 
-Keep the summary concise and structured. Do NOT explain or speculate.
+Keep the summary concise and structured. Do NOT explain or speculate.just give the intent and description as the output.
 """
 
     
@@ -91,8 +93,26 @@ Keep the summary concise and structured. Do NOT explain or speculate.
     ))
     db.commit()
 
+    # 🧠 Step 2.5: Extract only the Description line from the summary
+    description_prompt = f"""
+    you are a helpful assistant in an summarising data into simple descriptions.
+    By analysing the below summary , generate a short description for the llm to extract the details from the user input.
+    the output only should be like this: no explanations needed!
+    eg:Users intent is to assign a task to Rovidu Deshara with a due date of next Monday, there are no missing fields.
+
+    Summary:
+    {summary}+{message}
+    """
+
+    try:
+        description_only = llm_call(description_prompt).strip()
+    except Exception as e:
+        description_only = "⚠️ Failed to extract description."
+        print(f"[DESCRIPTION ERROR] {e}")
+
     
     print(f"[SUMMARY] Summary generated: {summary}")
-    # Step 4: Return updated state
+    print(f"[DESCRIPTION] Description extracted: {description_only}")
     state["memory_summary"] = summary
+    state["memory_description"] = description_only
     return state

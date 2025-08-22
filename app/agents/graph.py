@@ -1,5 +1,7 @@
 from langgraph.graph import StateGraph, END, START
 from app.agents.state import AgentState
+from langgraph.checkpoint.memory import MemorySaver
+
 
 # Tools
 from app.agents.tools.classify import classify_query
@@ -10,6 +12,8 @@ from app.agents.tools.other import other_task
 from app.agents.tools.add_user import create_user
 from app.agents.tools.employee_update import submit_update
 from app.agents.tools.memory import handle_memory_node  # 🧠 new import
+
+memory = MemorySaver()
 
 # LangGraph setup
 graph = StateGraph(AgentState)

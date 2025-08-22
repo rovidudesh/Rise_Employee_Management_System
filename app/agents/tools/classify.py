@@ -35,7 +35,6 @@ def classify_query(state: AgentState) -> AgentState:
 
     available_tools = role_tool_map.get(session_role, ["other"])
 
-    print(f"[CLASSIFY] Available tools for role '{session_role}': {available_tools}")
 
     # 🧾 Step 3: Classify using summary + message
     classification_prompt = f"""
@@ -47,12 +46,9 @@ The current user's role is **{session_role}**, so they are allowed to perform ON
 
 Now analyze the combined conversation context and classify the intent.
 
-🧠 Previous Summary:
-{memory_summary}
+full context = Previous Summary: {memory_summary}+ latest user message:{user_input}
 
-🗣️ Latest User Message:
-{user_input}
-
+join an analyze the full context and try to figure out what the user is trying to do.and classify the intent.
 --- 
 Respond with just **one** of these keywords: {', '.join(f"`{tool}`" for tool in available_tools)}
 """

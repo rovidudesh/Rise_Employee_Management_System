@@ -9,6 +9,7 @@ class AgentState(TypedDict):
     target_employee: Optional[dict]  
     update_id : Optional[dict]
     memory_summary: Optional[str]
+    memory_description : Optional[str]
 
 
 

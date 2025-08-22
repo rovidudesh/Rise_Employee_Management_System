@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage
 from app.agents.graph import chatbot_agent3  # This is your compiled LangGraph agent
 from app.agents.state import AgentState     # Your shared agent state structure
 from flask import render_template
-from app.models import User , DailyUpdate , Task
+from app.models import User , DailyUpdate , Task , ChatMessage
 from app.database import SessionLocal
 from datetime import date
 from werkzeug.security import check_password_hash  # Optional for future hashed passwords
@@ -52,8 +52,23 @@ def login():
 #Logout
 @main.route("/logout")
 def logout():
-    session.clear()  # Clears all session data
-    flash(" Logged out successfully.")
+    try:
+        db = SessionLocal()
+        try:
+            # Delete ALL chat messages
+            deleted_count = db.query(ChatMessage).delete()
+            db.commit()
+            print(f"✅ Deleted {deleted_count} chat messages from database.")
+        except Exception as e:
+            db.rollback()
+            print(f"❌ Error deleting chat messages: {e}")
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Unexpected error in logout: {e}")
+
+    session.clear()
+    flash("Logged out successfully.")
     return redirect("/")
 
 

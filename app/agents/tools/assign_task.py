@@ -1,6 +1,6 @@
 from app.utils.llm import llm_call
 from app.agents.state import AgentState
-from app.database import SessionLocal 
+from app.database import SessionLocal
 from app.models import Task, User
 from datetime import date, datetime
 
@@ -8,70 +8,79 @@ from datetime import date, datetime
 def assign_task(state: AgentState):
     print("Assigning task...")
     user_input = state["messages"][-1].content
-    session_user_id = state.get("session_user_id")  # Logged-in manager
+    session_user_id = state.get("session_user_id")
+    description_only = state.get("memory_description", "").strip()
     today = datetime.today().date()
 
-    # 🧠 Step 1: Extract fields
+    # 🧠 1. Extraction Prompt
     extraction_prompt = f"""
-You are a task-extracting assistant.
+You are a helpful assistant extracting task details from user input.
 
 From the following instruction, extract:
-1. Full name of the person receiving the task(capitalized the first letter of each name)
-2. Task title(generate a short title from the user message)
-3. A short description of the task (you can generate one if there's enough context)
-4. Due date (in format YYYY-MM-DD). 
-   If the message contains a relative date (e.g., "next Monday", "tomorrow", "this Friday"), 
-   convert it into the correct absolute date based on today's date ({today}). 
-   If no date is mentioned, leave it blank.
-   
-Only output the values in order, one per line.
+1. Full name of the assignee (capitalize first letters)
+2. Task title — generate a short, relevant title if not explicitly mentioned
+3. Short task description — summarize from message if not explicitly stated
+4. Due date (absolute format: YYYY-MM-DD). If a relative date is mentioned
+   (e.g., "next Monday", "tomorrow"), convert it using today's date: {today}.
+   If no due date is found, leave it blank.
 
-Message:
-\"{user_input}\"
+Respond with each item on a new line.
+
+Instruction:
+\"\"\"{description_only}\n{user_input}\"\"\"
 """
-    response = llm_call(extraction_prompt)
-    lines = [line.strip() for line in response.strip().splitlines() if line.strip()]
-    print("🔍 Extracted lines:", lines)
 
-    # Extract values or mark missing
-    assigned_to_name = lines[0] if len(lines) >= 1 and lines[0].lower() != "none" else None
-    title = lines[1] if len(lines) >= 2 and lines[1].lower() != "unspecified task" else None
-    description = lines[2] if len(lines) >= 3 and lines[2].lower() != "no description provided" else None
-    due_date_str = lines[3] if len(lines) >= 4 and lines[3] else None
+    try:
+        response = llm_call(extraction_prompt)
+        lines = [line.strip() for line in response.strip().splitlines() if line.strip()]
+        print("🔍 Extracted lines:", lines)
+    except Exception as e:
+        return {"retrieved_data": f"❌ Failed to extract task details: {e}"}
 
-    # 🔁 Fix: If description is provided but title is missing → regenerate title from description
-    if description and not title:
+    # 2. Parse values
+    assigned_to_name = lines[0] if len(lines) > 0 and lines[0].lower() != "none" else None
+    title = lines[1] if len(lines) > 1 and lines[1].lower() != "unspecified task" else None
+    description = lines[2] if len(lines) > 2 and lines[2].lower() != "no description provided" else None
+    due_date_str = lines[3] if len(lines) > 3 and lines[3] else None
+
+    # 3. Auto-generate title if missing but description is present
+    if not title and description:
         title_prompt = f"""
-You are an assistant generating a title from a task description.
+You are a task title generator.
 
-Description:
+Given this task description:
 \"{description}\"
 
-Provide a 2-4 word task title:
+Return a short, 2-4 word task title:
 """
-        title = llm_call(title_prompt).strip()
+        try:
+            title = llm_call(title_prompt).strip()
+        except Exception as e:
+            title = "Untitled Task"
+            print(f"[TITLE GEN ERROR] {e}")
 
-    # 🧩 Collect what's still missing
+    # 4. Identify missing required fields
     missing = []
     if not assigned_to_name:
-        missing.append("the assignee's full name")
+        missing.append("the assignee’s full name")
     if not description:
-        missing.append("a brief task description")
+        missing.append("a short task description")
     if not due_date_str:
         missing.append("a due date (e.g., 2025-07-20)")
 
     if missing:
         clarification_msg = (
-            f"⚠️ I need a bit more info to assign the task properly.\n\n"
-            f"Please provide: {', '.join(missing)}."
+            f"👋 Hey Rise Pal! I still need the following to assign this task:\n"
+            f"👉 {', '.join(missing)}.\n\n"
+            f"Please provide the missing detail(s)."
         )
         return {"retrieved_data": clarification_msg}
 
-    # ✅ Step 2: Save task
+    # 5. Commit task to DB
     session = SessionLocal()
     assigner = session.query(User).filter_by(id=session_user_id).first()
     if not assigner:
-        return {"retrieved_data": "❌ Could not find the logged-in assigner in the system."}
+        return {"retrieved_data": "❌ Could not find the assigner in the system."}
 
     assignee = session.query(User).filter_by(full_name=assigned_to_name).first()
     if not assignee:
@@ -85,12 +94,15 @@ Provide a 2-4 word task title:
             assigned_by_id=assigner.id,
             assigned_to_id=assignee.id,
             status="open",
-            assigned_date=date.today()
+            assigned_date=today
         )
         session.add(task)
         session.commit()
     except Exception as e:
+        session.rollback()
         return {"retrieved_data": f"❌ Failed to save task: {e}"}
+    finally:
+        session.close()
 
     return {
         "retrieved_data": (
